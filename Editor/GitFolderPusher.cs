@@ -113,20 +113,17 @@ namespace UnityEssentials
                 string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
-                // Characters to remove: invisible LTR/RTL and directional formatting
-                char[] invisibleChars = new[] { '\u200E', '\u200F', '\u202A', '\u202B', '\u202C', '\u202D', '\u202E' };
+                bool isInvisibleCommit = string.IsNullOrWhiteSpace(commitMessage?.Trim(
+                    '\u200E', '\u200F', '\u202A', '\u202B', '\u202C', '\u202D', '\u202E'));
 
-                // Remove them from commitMessage and output
-                string cleanedCommitMessage = new string(commitMessage?.Where(c => !invisibleChars.Contains(c)).ToArray());
-                string cleanedOutput = new string(output?.Where(c => !invisibleChars.Contains(c)).ToArray());
+                if (!string.IsNullOrEmpty(output) && isInvisibleCommit)
+                {
+                    Debug.Log(output.Count());
+                    output = output.Remove(0, 3);
+                }
 
-                // Check if commit message is empty or whitespace after cleaning
-                bool isInvisibleCommit = string.IsNullOrWhiteSpace(cleanedCommitMessage);
-
-                // Only log if the cleaned output has content
-                if (!string.IsNullOrEmpty(cleanedOutput))
-                    Debug.Log("[Git] " + cleanedOutput);
-
+                if (!string.IsNullOrEmpty(output))
+                    Debug.Log("[Git] " + output);
 
                 if (!string.IsNullOrEmpty(error) && process.ExitCode != 0)
                     Debug.LogError("[Git] " + error);
