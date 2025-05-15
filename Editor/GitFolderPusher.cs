@@ -117,10 +117,7 @@ namespace UnityEssentials
                     '\u200E', '\u200F', '\u202A', '\u202B', '\u202C', '\u202D', '\u202E'));
 
                 if (!string.IsNullOrEmpty(output) && isInvisibleCommit)
-                {
-                    Debug.Log(output.Count());
-                    output = output.Remove(0, 3);
-                }
+                    output = output.Remove(15, 3);
 
                 if (!string.IsNullOrEmpty(output))
                     Debug.Log("[Git] " + output);
