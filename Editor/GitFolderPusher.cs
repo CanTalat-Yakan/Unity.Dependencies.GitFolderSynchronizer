@@ -111,12 +111,14 @@ namespace UnityEssentials
                 string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
-                if (emptyCommitMessage) 
+                if (emptyCommitMessage)
                     output = output.Remove(15, 3);
 
-                if (process.ExitCode == 0)
-                    Debug.Log("[Git] " + output);
-                else Debug.LogError("[Git] " + error);
+                Debug.Log("[Git] " + output);
+
+                var hasErrorMessage = !string.IsNullOrEmpty(error);
+                if (hasErrorMessage && process.ExitCode != 0)
+                    Debug.LogError("[Git] " + error);
             }
         }
 
