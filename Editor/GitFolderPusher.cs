@@ -114,10 +114,12 @@ namespace UnityEssentials
                 if (emptyCommitMessage)
                     output = output.Remove(15, 3);
 
+                var hasCommitMessage = !string.IsNullOrEmpty(output);
+                if (hasCommitMessage)
                 Debug.Log("[Git] " + output);
 
                 var hasErrorMessage = !string.IsNullOrEmpty(error);
-                if (hasErrorMessage && process.ExitCode != 0)
+                if (hasCommitMessage && process.ExitCode != 0)
                     Debug.LogError("[Git] " + error);
             }
         }
