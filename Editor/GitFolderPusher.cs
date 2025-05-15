@@ -12,7 +12,7 @@ namespace UnityEssentials
     public class GitFolderPusher : EditorWindow
     {
         private static string gitFolderPath;
-        private string commitMessage = "‎ ";
+        private string commitMessage = string.Empty;
         private Vector2 scroll;
         private static List<string> changedFiles = new();
 
@@ -71,7 +71,7 @@ namespace UnityEssentials
             commitMessage = EditorGUILayout.TextField(commitMessage);
 
             GUILayout.FlexibleSpace();
-            GUI.enabled = changedFiles.Count > 0 && !string.IsNullOrWhiteSpace(commitMessage);
+            GUI.enabled = changedFiles.Count > 0;
 
             if (GUILayout.Button("Commit & Push", GUILayout.Height(30)))
             {
@@ -85,18 +85,16 @@ namespace UnityEssentials
 
         private void CommitAndPush()
         {
-            if (string.IsNullOrWhiteSpace(commitMessage))
-            {
-                Debug.LogError("Commit message cannot be empty.");
-                return;
-            }
+            bool emptyCommitMessage = false;
+            if (emptyCommitMessage = string.IsNullOrEmpty(commitMessage))
+                commitMessage = "‎ ";
 
             RunGitCommand("add .");
-            RunGitCommand($"commit -m \"{commitMessage}\"");
+            RunGitCommand($"commit -m \"{commitMessage}\"", emptyCommitMessage);
             RunGitCommand("push");
         }
 
-        private void RunGitCommand(string arguments)
+        private void RunGitCommand(string arguments, bool emptyCommitMessage = false)
         {
             ProcessStartInfo startInfo = new("git", arguments)
             {
@@ -113,17 +111,12 @@ namespace UnityEssentials
                 string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
-                bool isInvisibleCommit = string.IsNullOrWhiteSpace(commitMessage?.Trim(
-                    '\u200E', '\u200F', '\u202A', '\u202B', '\u202C', '\u202D', '\u202E'));
-
-                if (!string.IsNullOrEmpty(output) && isInvisibleCommit)
+                if (emptyCommitMessage) 
                     output = output.Remove(15, 3);
 
-                if (!string.IsNullOrEmpty(output))
+                if (process.ExitCode == 0)
                     Debug.Log("[Git] " + output);
-
-                if (!string.IsNullOrEmpty(error) && process.ExitCode != 0)
-                    Debug.LogError("[Git] " + error);
+                else Debug.LogError("[Git] " + error);
             }
         }
 
