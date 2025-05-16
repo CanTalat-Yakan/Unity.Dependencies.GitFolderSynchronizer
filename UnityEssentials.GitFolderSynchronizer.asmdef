@@ -1,5 +1,5 @@
 {
-    "name": "UnityEssentials.GitFolderPusher",
+    "name": "UnityEssentials.GitFolderSynchronizer",
     "rootNamespace": "UnityEssentials",
     "references": [],
     "includePlatforms": [],

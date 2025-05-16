@@ -1,21 +1,15 @@
-﻿using UnityEditor;
-using UnityEngine;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEditor.PackageManager;
+using UnityEngine;
 using Debug = UnityEngine.Debug;
-using System.Linq;
 
-#if UNITY_EDITOR
 namespace UnityEssentials
 {
-    public class GitFolderPusher : EditorWindow
+    public partial class GitFolderPusher : EditorWindow
     {
-        private static string gitFolderPath;
-        private string commitMessage = string.Empty;
-        private Vector2 scroll;
-        private static List<string> changedFiles = new();
-
         [MenuItem("Assets/Git Commit and Push", true)]
         public static bool ValidateGitPush()
         {
@@ -31,10 +25,10 @@ namespace UnityEssentials
         [MenuItem("Assets/Git Commit and Push", priority = 0)]
         public static void ShowWindow()
         {
-            gitFolderPath = GetSelectedPath();
-            if (!string.IsNullOrEmpty(gitFolderPath))
+            string path = GetSelectedPath();
+            if (!string.IsNullOrEmpty(path))
             {
-                changedFiles = GetChangedFiles(gitFolderPath);
+                changedFiles = GetChangedFiles(path);
 
                 GitFolderPusher window = CreateInstance<GitFolderPusher>();
                 window.titleContent = new GUIContent("Git Push Window");
@@ -46,23 +40,23 @@ namespace UnityEssentials
 
         public void OnGUI()
         {
+            string path = GetSelectedPath();
+            string commitMessage = string.Empty;
             EditorGUILayout.BeginVertical("box");
             {
                 GUILayout.Label("Commit & Push to Git", EditorStyles.boldLabel);
 
-                EditorGUILayout.HelpBox("Repository: " + gitFolderPath, MessageType.Info);
+                EditorGUILayout.HelpBox("Repository: " + path, MessageType.Info);
 
                 GUILayout.Space(5);
                 GUILayout.Label("Changed Files:", EditorStyles.boldLabel);
 
-                // Calculate the remaining space for the scroll view
                 float remainingHeight = position.height - 200;
 
                 if (changedFiles.Count == 0)
                     EditorGUILayout.LabelField("No uncommitted changes detected.");
                 else
                 {
-                    // Begin a scroll view that fills the available space
                     scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(remainingHeight));
                     {
                         foreach (string file in changedFiles)
@@ -73,7 +67,6 @@ namespace UnityEssentials
                     GUILayout.Label($"Total Changes: {changedFiles.Count}", EditorStyles.miniBoldLabel);
                 }
 
-                // This will push the following elements to the bottom
                 GUILayout.FlexibleSpace();
 
                 GUILayout.Label("Commit Message:", EditorStyles.label);
@@ -84,7 +77,7 @@ namespace UnityEssentials
                 GUI.enabled = changedFiles.Count > 0;
                 if (GUILayout.Button("Commit & Push", GUILayout.Height(30)))
                 {
-                    CommitAndPush();
+                    CommitAndPush(path, commitMessage);
                     Close();
                 }
                 GUI.enabled = true;
@@ -92,60 +85,31 @@ namespace UnityEssentials
             EditorGUILayout.EndVertical();
         }
 
-        private void CommitAndPush()
+        private static void CommitAndPush(string path, string commitMessage)
         {
             bool emptyCommitMessage = false;
             if (emptyCommitMessage = string.IsNullOrEmpty(commitMessage))
                 commitMessage = "‎ ";
 
-            RunGitCommand("add .");
-            RunGitCommand($"commit -m \"{commitMessage}\"", emptyCommitMessage);
-            RunGitCommand("push");
-        }
+            RunGitCommand(path, "add .");
+            var (commitOutput, commitError, commitCode) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
+            RunGitCommand(path, "push");
 
-        private void RunGitCommand(string arguments, bool emptyCommitMessage = false)
-        {
-            ProcessStartInfo startInfo = new("git", arguments)
-            {
-                WorkingDirectory = gitFolderPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+            if (emptyCommitMessage)
+                commitOutput = commitOutput.Remove(15, 3);
 
-            using (Process process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
+            if (!string.IsNullOrEmpty(commitOutput))
+                Debug.Log("[Git] " + commitOutput);
 
-                if (emptyCommitMessage)
-                    output = output.Remove(15, 3);
-
-                var hasCommitMessage = !string.IsNullOrEmpty(output);
-                if (hasCommitMessage)
-                Debug.Log("[Git] " + output);
-
-                var hasErrorMessage = !string.IsNullOrEmpty(error);
-                if (hasCommitMessage && process.ExitCode != 0)
-                    Debug.LogError("[Git] " + error);
-            }
-        }
-
-        private static string GetSelectedPath()
-        {
-            string assetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
-            if (string.IsNullOrEmpty(assetPath)) return null;
-            string fullPath = Path.GetFullPath(assetPath);
-            return Directory.Exists(fullPath) ? fullPath : Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(commitError))
+                Debug.LogError("[Git] " + commitError);
         }
 
         private static bool HasUncommittedChanges(string repoPath)
         {
             try
             {
-                ProcessStartInfo startInfo = new("git", "status --porcelain")
+                ProcessStartInfo startInfo = new ProcessStartInfo("git", "status --porcelain")
                 {
                     WorkingDirectory = repoPath,
                     RedirectStandardOutput = true,
@@ -166,10 +130,10 @@ namespace UnityEssentials
 
         private static List<string> GetChangedFiles(string repoPath)
         {
-            List<string> files = new();
+            List<string> files = new List<string>();
             try
             {
-                ProcessStartInfo startInfo = new("git", "status --porcelain")
+                ProcessStartInfo startInfo = new ProcessStartInfo("git", "status --porcelain")
                 {
                     WorkingDirectory = repoPath,
                     RedirectStandardOutput = true,
@@ -183,7 +147,7 @@ namespace UnityEssentials
                     string output = process.StandardOutput.ReadToEnd();
                     process.WaitForExit();
 
-                    using (StringReader reader = new(output))
+                    using (StringReader reader = new StringReader(output))
                     {
                         string line;
                         while ((line = reader.ReadLine()) != null)
@@ -214,4 +178,3 @@ namespace UnityEssentials
         }
     }
 }
-#endif
