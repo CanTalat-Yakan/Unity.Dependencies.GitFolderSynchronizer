@@ -16,7 +16,7 @@ All utilities are under the `UnityEssentials` namespace. This keeps your project
 using UnityEssentials;
 ```
 
-# GitFolderPusher  
+# Git Folder Pusher  
 Unity Editor tool for staging, committing, and pushing changes to a Git repository directly from the Unity interface.
 
 ## Features
