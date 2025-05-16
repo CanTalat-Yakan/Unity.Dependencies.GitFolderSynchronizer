@@ -10,9 +10,6 @@ namespace UnityEssentials
 {
     public partial class GitFolderPusher : EditorWindow
     {
-        private Vector2 scroll;
-        private static List<string> changedFiles = new();
-
         private static (string output, string error, int exitCode) RunGitCommand(string path, string arguments)
         {
             string output = string.Empty;

@@ -28,7 +28,7 @@ namespace UnityEssentials
             string path = GetSelectedPath();
             if (!string.IsNullOrEmpty(path))
             {
-                changedFiles = GetChangedFiles(path);
+                _changedFiles = GetChangedFiles(path);
 
                 GitFolderPusher window = CreateInstance<GitFolderPusher>();
                 window.titleContent = new GUIContent("Git Push Window");
@@ -37,6 +37,9 @@ namespace UnityEssentials
                 window.ShowUtility();
             }
         }
+
+        private Vector2 _scrollPosition;
+        private static List<string> _changedFiles = new();
 
         public void OnGUI()
         {
@@ -53,18 +56,18 @@ namespace UnityEssentials
 
                 float remainingHeight = position.height - 200;
 
-                if (changedFiles.Count == 0)
+                if (_changedFiles.Count == 0)
                     EditorGUILayout.LabelField("No uncommitted changes detected.");
                 else
                 {
-                    scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(remainingHeight));
+                    _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUILayout.Height(remainingHeight));
                     {
-                        foreach (string file in changedFiles)
+                        foreach (string file in _changedFiles)
                             EditorGUILayout.LabelField(file);
                     }
                     EditorGUILayout.EndScrollView();
 
-                    GUILayout.Label($"Total Changes: {changedFiles.Count}", EditorStyles.miniBoldLabel);
+                    GUILayout.Label($"Total Changes: {_changedFiles.Count}", EditorStyles.miniBoldLabel);
                 }
 
                 GUILayout.FlexibleSpace();
@@ -74,7 +77,7 @@ namespace UnityEssentials
 
                 GUILayout.Space(10);
 
-                GUI.enabled = changedFiles.Count > 0;
+                GUI.enabled = _changedFiles.Count > 0;
                 if (GUILayout.Button("Commit & Push", GUILayout.Height(30)))
                 {
                     CommitAndPush(path, commitMessage);
@@ -128,47 +131,34 @@ namespace UnityEssentials
             catch { return false; }
         }
 
-        private static List<string> GetChangedFiles(string repoPath)
+        private static List<string> GetChangedFiles(string path)
         {
-            List<string> files = new List<string>();
+            List<string> files = new();
             try
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo("git", "status --porcelain")
-                {
-                    WorkingDirectory = repoPath,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
+                var (output, error, code) = RunGitCommand(path, "status --porcelain");
 
-                using (Process process = Process.Start(startInfo))
+                using (StringReader reader = new StringReader(output))
                 {
-                    string output = process.StandardOutput.ReadToEnd();
-                    process.WaitForExit();
-
-                    using (StringReader reader = new StringReader(output))
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        string line;
-                        while ((line = reader.ReadLine()) != null)
+                        string statusCode = line.Length >= 2 ? line[..2].Trim() : "";
+                        string filePath = line.Length > 3 ? line[3..].Trim() : line.Trim();
+
+                        string statusLabel = statusCode switch
                         {
-                            string statusCode = line.Length >= 2 ? line[..2].Trim() : "";
-                            string filePath = line.Length > 3 ? line[3..].Trim() : line.Trim();
+                            "??" => "Untracked",
+                            "A" => "Added",
+                            "M" => "Modified",
+                            "D" => "Deleted",
+                            "R" => "Renamed",
+                            "C" => "Copied",
+                            "U" => "Conflict",
+                            _ => "Changed"
+                        };
 
-                            string statusLabel = statusCode switch
-                            {
-                                "??" => "Untracked",
-                                "A" or "A " or " A" => "Added",
-                                "M" or "M " or " M" => "Modified",
-                                "D" or "D " or " D" => "Deleted",
-                                "R" or "R " or " R" => "Renamed",
-                                "C" or "C " or " C" => "Copied",
-                                "U" or "U " or " U" => "Conflict",
-                                _ => "Changed"
-                            };
-
-                            files.Add($"[{statusLabel}] {filePath}");
-                        }
+                        files.Add($"[{statusLabel}] {filePath}");
                     }
                 }
             }
