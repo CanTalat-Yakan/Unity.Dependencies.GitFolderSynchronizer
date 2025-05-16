@@ -137,7 +137,7 @@ namespace UnityEssentials
             {
                 var (output, error, code) = RunGitCommand(path, "status --porcelain");
 
-                using (StringReader reader = new StringReader(output))
+                using (StringReader reader = new(output))
                 {
                     string line;
                     while ((line = reader.ReadLine()) != null)
