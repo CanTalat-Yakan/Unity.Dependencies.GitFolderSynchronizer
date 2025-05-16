@@ -47,39 +47,48 @@ namespace UnityEssentials
         public void OnGUI()
         {
             EditorGUILayout.BeginVertical("box");
-            GUILayout.Label("Commit & Push to Git", EditorStyles.boldLabel);
-
-            EditorGUILayout.HelpBox("Repository: " + gitFolderPath, MessageType.Info);
-
-            GUILayout.Space(5);
-            GUILayout.Label("Changed Files:", EditorStyles.boldLabel);
-
-            if (changedFiles.Count == 0)
-                EditorGUILayout.LabelField("No uncommitted changes detected.");
-            else
             {
-                scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(100));
-                foreach (string file in changedFiles)
-                    EditorGUILayout.LabelField(file);
-                EditorGUILayout.EndScrollView();
+                GUILayout.Label("Commit & Push to Git", EditorStyles.boldLabel);
 
-                GUILayout.Label($"Total Changes: {changedFiles.Count}", EditorStyles.miniBoldLabel);
+                EditorGUILayout.HelpBox("Repository: " + gitFolderPath, MessageType.Info);
+
+                GUILayout.Space(5);
+                GUILayout.Label("Changed Files:", EditorStyles.boldLabel);
+
+                // Calculate the remaining space for the scroll view
+                float remainingHeight = position.height - 200;
+
+                if (changedFiles.Count == 0)
+                    EditorGUILayout.LabelField("No uncommitted changes detected.");
+                else
+                {
+                    // Begin a scroll view that fills the available space
+                    scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(remainingHeight));
+                    {
+                        foreach (string file in changedFiles)
+                            EditorGUILayout.LabelField(file);
+                    }
+                    EditorGUILayout.EndScrollView();
+
+                    GUILayout.Label($"Total Changes: {changedFiles.Count}", EditorStyles.miniBoldLabel);
+                }
+
+                // This will push the following elements to the bottom
+                GUILayout.FlexibleSpace();
+
+                GUILayout.Label("Commit Message:", EditorStyles.label);
+                commitMessage = EditorGUILayout.TextField(commitMessage);
+
+                GUILayout.Space(10);
+
+                GUI.enabled = changedFiles.Count > 0;
+                if (GUILayout.Button("Commit & Push", GUILayout.Height(30)))
+                {
+                    CommitAndPush();
+                    Close();
+                }
+                GUI.enabled = true;
             }
-
-            GUILayout.Space(10);
-            GUILayout.Label("Commit Message:", EditorStyles.label);
-            commitMessage = EditorGUILayout.TextField(commitMessage);
-
-            GUILayout.FlexibleSpace();
-            GUI.enabled = changedFiles.Count > 0;
-
-            if (GUILayout.Button("Commit & Push", GUILayout.Height(30)))
-            {
-                CommitAndPush();
-                Close();
-            }
-
-            GUI.enabled = true;
             EditorGUILayout.EndVertical();
         }
 
