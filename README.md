@@ -14,3 +14,19 @@ All utilities are under the `UnityEssentials` namespace. This keeps your project
 
 ```csharp
 using UnityEssentials;
+```
+
+# GitFolderPusher  
+Unity Editor tool for staging, committing, and pushing changes to a Git repository directly from the Unity interface.
+
+## Usage Examples
+- Adds "Git Commit and Push" option under `Assets/` menu if the selected folder contains a `.git` directory.  
+- Validates whether uncommitted changes exist before enabling the menu item.  
+- On activation, opens a modal EditorWindow displaying changed files with status labels.  
+- Scrollable file list dynamically fills available vertical space.  
+- Allows typing a commit message and triggers `git add`, `git commit`, and `git push` operations.  
+- Handles empty commit messages by inserting a zero-width character.  
+- Captures and logs Git stdout/stderr to Unity's console for debugging.  
+- Parses `git status --porcelain` output to extract file paths and corresponding Git status codes.  
+- Status codes mapped to human-readable labels such as "Untracked", "Modified", "Deleted", etc.  
+- Opens the window only when a valid Git repository folder is selected.
