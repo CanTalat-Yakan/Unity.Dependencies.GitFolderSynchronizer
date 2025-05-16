@@ -19,7 +19,7 @@ using UnityEssentials;
 # GitFolderPusher  
 Unity Editor tool for staging, committing, and pushing changes to a Git repository directly from the Unity interface.
 
-## Usage Examples
+## Features
 - Adds "Git Commit and Push" option under `Assets/` menu if the selected folder contains a `.git` directory.  
 - Validates whether uncommitted changes exist before enabling the menu item.  
 - On activation, opens a modal EditorWindow displaying changed files with status labels.  
