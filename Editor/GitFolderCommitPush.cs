@@ -111,7 +111,7 @@ namespace UnityEssentials
         {
             try
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo("git", "status --porcelain")
+                ProcessStartInfo startInfo = new("git", "status --porcelain")
                 {
                     WorkingDirectory = repoPath,
                     RedirectStandardOutput = true,
