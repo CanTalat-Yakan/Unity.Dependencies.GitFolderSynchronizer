@@ -94,7 +94,7 @@ namespace UnityEssentials
                 commitMessage = "‎ ";
 
             RunGitCommand(path, "add .");
-            var (commitOutput, commitError, commitCode) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
+            var (commitOutput, commitError, exitCode) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
             RunGitCommand(path, "push");
 
             if (emptyCommitMessage)
@@ -107,61 +107,40 @@ namespace UnityEssentials
                 Debug.LogError("[Git] " + commitError);
         }
 
-        private static bool HasUncommittedChanges(string repoPath)
+        private static bool HasUncommittedChanges(string path)
         {
-            try
-            {
-                ProcessStartInfo startInfo = new("git", "status --porcelain")
-                {
-                    WorkingDirectory = repoPath,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
+            var (output, error, exitCode) = RunGitCommand(path, "status --porcelain");
 
-                using (Process process = Process.Start(startInfo))
-                {
-                    string output = process.StandardOutput.ReadToEnd();
-                    process.WaitForExit();
-                    return !string.IsNullOrWhiteSpace(output);
-                }
-            }
-            catch { return false; }
+            return !string.IsNullOrWhiteSpace(output);
         }
 
         private static List<string> GetChangedFiles(string path)
         {
             List<string> files = new();
-            try
+            var (output, error, exitCode) = RunGitCommand(path, "status --porcelain");
+            using (StringReader reader = new(output))
             {
-                var (output, error, code) = RunGitCommand(path, "status --porcelain");
-
-                using (StringReader reader = new(output))
+                string line;
+                while ((line = reader.ReadLine()) != null)
                 {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
+                    string statusCode = line.Length >= 2 ? line[..2].Trim() : "";
+                    string filePath = line.Length > 3 ? line[3..].Trim() : line.Trim();
+
+                    string statusLabel = statusCode switch
                     {
-                        string statusCode = line.Length >= 2 ? line[..2].Trim() : "";
-                        string filePath = line.Length > 3 ? line[3..].Trim() : line.Trim();
+                        "??" => "Untracked",
+                        "A" => "Added",
+                        "M" => "Modified",
+                        "D" => "Deleted",
+                        "R" => "Renamed",
+                        "C" => "Copied",
+                        "U" => "Conflict",
+                        _ => "Changed"
+                    };
 
-                        string statusLabel = statusCode switch
-                        {
-                            "??" => "Untracked",
-                            "A" => "Added",
-                            "M" => "Modified",
-                            "D" => "Deleted",
-                            "R" => "Renamed",
-                            "C" => "Copied",
-                            "U" => "Conflict",
-                            _ => "Changed"
-                        };
-
-                        files.Add($"[{statusLabel}] {filePath}");
-                    }
+                    files.Add($"[{statusLabel}] {filePath}");
                 }
             }
-            catch (System.Exception e) { Debug.LogError("[Git] Failed to get changed files: " + e.Message); }
 
             return files;
         }
