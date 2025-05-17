@@ -25,8 +25,8 @@ namespace UnityEssentials
                 return;
             }
 
-            var (fetchOutput, fetchError, exitCode) = RunGitCommand(path, "fetch");
-            if (exitCode != 0)
+            var (fetchOutput, fetchError, fetchExitCode) = RunGitCommand(path, "fetch");
+            if (fetchExitCode != 0)
             {
                 Debug.LogError($"[Git] Fetch failed: {fetchError}");
                 return;
