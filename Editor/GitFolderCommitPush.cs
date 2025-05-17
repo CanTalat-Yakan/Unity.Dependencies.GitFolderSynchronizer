@@ -29,7 +29,7 @@ namespace UnityEssentials
             {
                 _changedFiles = GetChangedFiles(path);
 
-                GitFolderPusher window = CreateInstance<GitFolderPusher>();
+                var window = CreateInstance<GitFolderPusher>();
                 window.titleContent = new GUIContent("Git Push Window");
                 window.minSize = new Vector2(420, 300);
                 window.position = new Rect(Screen.width / 2f, Screen.height / 2f, 420, 300);
