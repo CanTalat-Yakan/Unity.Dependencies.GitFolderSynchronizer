@@ -1,14 +1,11 @@
 ﻿using UnityEditor;
-using UnityEngine;
 using System.IO;
 using System.Diagnostics;
-using System.Collections.Generic;
 using Debug = UnityEngine.Debug;
 
-#if UNITY_EDITOR
 namespace UnityEssentials
 {
-    public partial class GitFolderPusher : EditorWindow
+    public partial class GitFolderSynchronizer : EditorWindow
     {
         private static (string output, string error, int exitCode) RunGitCommand(string path, string arguments)
         {
@@ -54,4 +51,3 @@ namespace UnityEssentials
         }
     }
 }
-#endif

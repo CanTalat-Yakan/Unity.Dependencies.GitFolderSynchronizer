@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEssentials
 {
-    public partial class GitFolderPusher : EditorWindow
+    public partial class GitFolderSynchronizer : EditorWindow
     {
         [MenuItem("Assets/Git Fetch and Pull", true)]
         public static bool ValidateGitFetchPull()

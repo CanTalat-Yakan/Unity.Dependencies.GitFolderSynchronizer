@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -7,7 +6,7 @@ using Debug = UnityEngine.Debug;
 
 namespace UnityEssentials
 {
-    public partial class GitFolderPusher : EditorWindow
+    public partial class GitFolderSynchronizer : EditorWindow
     {
         [MenuItem("Assets/Git Commit and Push", true)]
         public static bool ValidateGitPush()
@@ -29,7 +28,7 @@ namespace UnityEssentials
             {
                 _changedFiles = GetChangedFiles(path);
 
-                var window = CreateInstance<GitFolderPusher>();
+                var window = CreateInstance<GitFolderSynchronizer>();
                 window.titleContent = new GUIContent("Git Push Window");
                 window.minSize = new Vector2(420, 300);
                 window.position = new Rect(Screen.width / 2f, Screen.height / 2f, 420, 300);
@@ -60,10 +59,10 @@ namespace UnityEssentials
                 else
                 {
                     _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUILayout.Height(remainingHeight));
-                    {
-                        foreach (string file in _changedFiles)
-                            EditorGUILayout.LabelField(file);
-                    }
+
+                    foreach (string file in _changedFiles)
+                        EditorGUILayout.LabelField(file);
+
                     EditorGUILayout.EndScrollView();
 
                     GUILayout.Label($"Total Changes: {_changedFiles.Count}", EditorStyles.miniBoldLabel);
