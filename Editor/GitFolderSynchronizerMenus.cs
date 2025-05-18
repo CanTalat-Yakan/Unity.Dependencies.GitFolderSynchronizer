@@ -22,6 +22,13 @@ namespace UnityEssentials
             }
         }
 
+        public static void CommitPushFetch(string path, string commitMessage)
+        {
+            Commit(path, commitMessage);
+            Push();
+            Fetch();
+        }
+
         [MenuItem("Assets/Git/Push", priority = 1)]
         public static void PushOrigin() => Push();
 

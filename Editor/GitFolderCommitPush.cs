@@ -19,7 +19,7 @@ namespace UnityEssentials
             string commitMessage = string.Empty;
             EditorGUILayout.BeginVertical("box");
             {
-                GUILayout.Label("Commit to Git", EditorStyles.boldLabel);
+                GUILayout.Label("Push to Git", EditorStyles.boldLabel);
 
                 EditorGUILayout.HelpBox("Repository: " + path, MessageType.Info);
 
@@ -50,9 +50,9 @@ namespace UnityEssentials
                 GUILayout.Space(10);
 
                 GUI.enabled = _changedFiles.Count > 0;
-                if (GUILayout.Button("Commit", GUILayout.Height(30)))
+                if (GUILayout.Button("Commit and Push", GUILayout.Height(30)))
                 {
-                    Commit(path, commitMessage);
+                    CommitPushFetch(path, commitMessage);
                     Close();
                 }
                 GUI.enabled = true;
