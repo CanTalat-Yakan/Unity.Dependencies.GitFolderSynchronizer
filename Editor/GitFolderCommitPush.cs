@@ -78,6 +78,7 @@ namespace UnityEssentials
             if (!string.IsNullOrEmpty(commitError))
                 Debug.LogError("[Git] " + commitError);
         }
+
         private static void Push()
         {
             var path = GetSelectedPath();
@@ -86,14 +87,13 @@ namespace UnityEssentials
             if (!string.IsNullOrEmpty(pushOutput))
                 Debug.Log("[Git] " + pushOutput);
 
-            if (!string.IsNullOrEmpty(pushError))
+            if (!string.IsNullOrEmpty(pushError) && exitCode != 0)
                 Debug.LogError("[Git] " + pushError);
         }
 
         private static bool HasUncommittedChanges(string path)
         {
             var (output, error, exitCode) = RunGitCommand(path, "status --porcelain");
-
             return !string.IsNullOrWhiteSpace(output);
         }
 
