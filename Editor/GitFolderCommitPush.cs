@@ -23,7 +23,7 @@ namespace UnityEssentials
         }
 
         [MenuItem("Assets/Git Push", priority = 1)]
-        public static void PushOrigin() => RunPushGitCommand(GetSelectedPath());
+        public static void PushOrigin() => Push();
 
         [MenuItem("Assets/Git Commit", priority = 0)]
         public static void ShowWindow()
@@ -83,7 +83,7 @@ namespace UnityEssentials
                 GUI.enabled = _changedFiles.Count > 0;
                 if (GUILayout.Button("Commit", GUILayout.Height(30)))
                 {
-                    CommitAndPush(path, commitMessage);
+                    Commit(path, commitMessage);
                     Close();
                 }
                 GUI.enabled = true;
@@ -91,7 +91,7 @@ namespace UnityEssentials
             EditorGUILayout.EndVertical();
         }
 
-        private static void CommitAndPush(string path, string commitMessage)
+        private static void Commit(string path, string commitMessage)
         {
             bool emptyCommitMessage = false;
             if (emptyCommitMessage = string.IsNullOrEmpty(commitMessage))
@@ -99,7 +99,6 @@ namespace UnityEssentials
 
             RunGitCommand(path, "add .");
             var (commitOutput, commitError, exitCode) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
-            RunPushGitCommand(path);
 
             if (emptyCommitMessage)
                 commitOutput = commitOutput.Remove(15, 3);
@@ -109,6 +108,18 @@ namespace UnityEssentials
 
             if (!string.IsNullOrEmpty(commitError))
                 Debug.LogError("[Git] " + commitError);
+        }
+        private static void Push()
+        {
+            var path = GetSelectedPath();
+            RunGitCommand(path, "add .");
+            var (pushOutput, pushError, exitCode) = RunPushGitCommand(path);
+                        
+            if (!string.IsNullOrEmpty(pushOutput))
+                Debug.Log("[Git] " + pushOutput);
+
+            if (!string.IsNullOrEmpty(pushError))
+                Debug.LogError("[Git] " + pushError);
         }
 
         private static bool HasUncommittedChanges(string path)
