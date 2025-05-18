@@ -8,6 +8,8 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer : EditorWindow
     {
+        private const string emptyCommitMessage = "⠀";
+
         [MenuItem("Assets/Git Commit and Push", true)]
         public static bool ValidateGitPush()
         {
