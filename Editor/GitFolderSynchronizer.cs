@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
 using System.IO;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
@@ -51,3 +52,4 @@ namespace UnityEssentials
         }
     }
 }
+#endif

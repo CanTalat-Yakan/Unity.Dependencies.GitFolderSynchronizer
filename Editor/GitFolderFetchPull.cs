@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -61,3 +62,4 @@ namespace UnityEssentials
         }
     }
 }
+#endif
