@@ -8,7 +8,7 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer : EditorWindow
     {
-        private const string emptyCommitMessage = "⠀";
+        private const string EmptyCommitMessage = "⠀";
 
         [MenuItem("Assets/Git Commit and Push", true)]
         public static bool ValidateGitPush()
@@ -92,7 +92,7 @@ namespace UnityEssentials
         {
             bool emptyCommitMessage = false;
             if (emptyCommitMessage = string.IsNullOrEmpty(commitMessage))
-                commitMessage = "‎ ";
+                commitMessage = EmptyCommitMessage;
 
             RunGitCommand(path, "add .");
             var (commitOutput, commitError, exitCode) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
