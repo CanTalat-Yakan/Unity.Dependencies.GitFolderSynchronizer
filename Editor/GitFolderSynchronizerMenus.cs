@@ -6,7 +6,7 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer : EditorWindow
     {
-        [MenuItem("Assets/Git/Commit", priority = 0)]
+        [MenuItem("Assets/Git Commit and Push", priority = 0)]
         public static void ShowWindow()
         {
             string path = GetSelectedPath();
@@ -25,20 +25,22 @@ namespace UnityEssentials
         public static void CommitPushFetch(string path, string commitMessage)
         {
             Commit(path, commitMessage);
-            Push();
-            Fetch();
+            PushOrigin();
+            FetchOrigin();
         }
 
-        [MenuItem("Assets/Git/Push", priority = 1)]
+        [MenuItem("Assets/Git Fetch and Pull", priority = 1)]
+        public static void FetchPull()
+        {
+            FetchOrigin();
+            PullOrigin();
+        }
+
         public static void PushOrigin() => Push();
-
-        [MenuItem("Assets/Git/Fetch", priority = 2)]
         public static void FetchOrigin() => Fetch();
-
-        [MenuItem("Assets/Git/Pull", priority = 3)]
         public static void PullOrigin() => Pull();
 
-        [MenuItem("Assets/Git/Commit", true)]
+        [MenuItem("Assets/Git Commit and Push", true)]
         public static bool ValidateGitCommit()
         {
             string path = GetSelectedPath();
@@ -46,9 +48,7 @@ namespace UnityEssentials
                 && HasUncommittedChanges(path);
         }
 
-        [MenuItem("Assets/Git/Push", true)]
-        [MenuItem("Assets/Git/Fetch", true)]
-        [MenuItem("Assets/Git/Pull", true)]
+        [MenuItem("Assets/Git Fetch and Pull", true)]
         public static bool ValidateGitFetchPull()
         {
             string path = GetSelectedPath();
