@@ -8,7 +8,7 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer : EditorWindow
     {
-        private const string EmptyCommitMessage = "⠀";
+        private const string EmptyCommitMessage = "⠀⠀⠀⠀⠀";
 
         private Vector2 _scrollPosition;
         private static List<string> _changedFiles = new();
@@ -70,7 +70,7 @@ namespace UnityEssentials
             var (commitOutput, commitError, exitCode) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
 
             if (emptyCommitMessage)
-                commitOutput = commitOutput.Remove(15, 3);
+                commitOutput = commitOutput.Remove(15, 15);
 
             if (!string.IsNullOrEmpty(commitOutput))
                 Debug.Log("[Git] " + commitOutput);
