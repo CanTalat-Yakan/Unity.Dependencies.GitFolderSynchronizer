@@ -32,18 +32,14 @@ namespace UnityEssentials
         public static void PullOrigin() => Pull();
 
         [MenuItem("Assets/Git/Commit", true)]
-        [MenuItem("Assets/Git/Push", true)]
-        public static bool ValidateGitPush()
+        public static bool ValidateGitCommit()
         {
             string path = GetSelectedPath();
-            if (string.IsNullOrEmpty(path)) return false;
-
-            string gitPath = Path.Combine(path, ".git");
-            if (!Directory.Exists(gitPath)) return false;
-
             return HasUncommittedChanges(path);
         }
 
+        [MenuItem("Assets/Git/Commit", true)]
+        [MenuItem("Assets/Git/Push", true)]
         [MenuItem("Assets/Git/Fetch", true)]
         [MenuItem("Assets/Git/Pull", true)]
         public static bool ValidateGitFetchPull()
