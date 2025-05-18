@@ -36,6 +36,13 @@ namespace UnityEssentials
             PullOrigin();
         }
 
+        [MenuItem("Assets/Git Push and Fetch", priority = 2)]
+        public static void PushFetch()
+        {
+            PushOrigin();
+            FetchOrigin();
+        }
+
         public static void PushOrigin() => Push();
         public static void FetchOrigin() => Fetch();
         public static void PullOrigin() => Pull();
@@ -48,6 +55,7 @@ namespace UnityEssentials
                 && HasUncommittedChanges(path);
         }
 
+        [MenuItem("Assets/Git Push and Fetch", true)]
         [MenuItem("Assets/Git Fetch and Pull", true)]
         public static bool ValidateGitFetchPull()
         {
