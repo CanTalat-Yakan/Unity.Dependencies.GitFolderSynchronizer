@@ -112,7 +112,6 @@ namespace UnityEssentials
         private static void Push()
         {
             var path = GetSelectedPath();
-            RunGitCommand(path, "add .");
             var (pushOutput, pushError, exitCode) = RunPushGitCommand(path);
                         
             if (!string.IsNullOrEmpty(pushOutput))
