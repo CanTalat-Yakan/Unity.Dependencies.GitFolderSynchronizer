@@ -7,17 +7,7 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer : EditorWindow
     {
-        [MenuItem("Assets/Git Fetch and Pull", true)]
-        public static bool ValidateGitFetchPull()
-        {
-            string path = GetSelectedPath();
-            return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git"));
-        }
-
-        [MenuItem("Assets/Git Fetch and Pull", priority = 2)]
-        public static void FetchOrigin() => FetchAndPull();
-
-        private static void FetchAndPull()
+        private static void Fetch()
         {
             string path = GetSelectedPath();
             if (string.IsNullOrEmpty(path))
@@ -30,6 +20,16 @@ namespace UnityEssentials
             if (fetchExitCode != 0)
             {
                 Debug.LogError($"[Git] Fetch failed: {fetchError}");
+                return;
+            }
+        }
+
+        private static void Pull()
+        {
+            string path = GetSelectedPath();
+            if (string.IsNullOrEmpty(path))
+            {
+                Debug.LogError("[Git] No repository selected.");
                 return;
             }
 

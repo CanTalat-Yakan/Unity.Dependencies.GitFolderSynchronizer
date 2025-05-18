@@ -10,37 +10,6 @@ namespace UnityEssentials
     {
         private const string EmptyCommitMessage = "⠀";
 
-        [MenuItem("Assets/Git Commit and Push", true)]
-        public static bool ValidateGitPush()
-        {
-            string path = GetSelectedPath();
-            if (string.IsNullOrEmpty(path)) return false;
-
-            string gitPath = Path.Combine(path, ".git");
-            if (!Directory.Exists(gitPath)) return false;
-
-            return HasUncommittedChanges(path);
-        }
-
-        [MenuItem("Assets/Git Push", priority = 1)]
-        public static void PushOrigin() => Push();
-
-        [MenuItem("Assets/Git Commit", priority = 0)]
-        public static void ShowWindow()
-        {
-            string path = GetSelectedPath();
-            if (!string.IsNullOrEmpty(path))
-            {
-                _changedFiles = GetChangedFiles(path);
-
-                var window = CreateInstance<GitFolderSynchronizer>();
-                window.titleContent = new GUIContent("Git Commit Window");
-                window.minSize = new Vector2(420, 300);
-                window.position = new Rect(Screen.width / 2f, Screen.height / 2f, 420, 300);
-                window.ShowUtility();
-            }
-        }
-
         private Vector2 _scrollPosition;
         private static List<string> _changedFiles = new();
 
