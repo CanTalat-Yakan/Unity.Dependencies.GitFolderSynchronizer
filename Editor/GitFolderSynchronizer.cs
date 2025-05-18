@@ -30,14 +30,6 @@ namespace UnityEssentials
                 };
                 startInfo.EnvironmentVariables["LC_ALL"] = "C";
 
-                if (arguments.StartsWith("push") && !string.IsNullOrEmpty(token))
-                {
-                    // Store the token in memory for this command only
-                    startInfo.EnvironmentVariables["GIT_ASKPASS"] = "echo";
-                    startInfo.EnvironmentVariables["GIT_USERNAME"] = "token";
-                    startInfo.EnvironmentVariables["GIT_PASSWORD"] = token;
-                }
-
                 using (Process process = Process.Start(startInfo))
                 {
                     output = process.StandardOutput.ReadToEnd();
@@ -46,7 +38,7 @@ namespace UnityEssentials
                     exitCode = process.ExitCode;
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 error = ex.Message;
                 Debug.LogError($"[Git] Command 'git {arguments}' failed: {ex.Message}");
