@@ -96,7 +96,7 @@ namespace UnityEssentials
 
             RunGitCommand(path, "add .");
             var (commitOutput, commitError, exitCode) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
-            RunGitCommand(path, "push");
+            RunPushGitCommand(path);
 
             if (emptyCommitMessage)
                 commitOutput = commitOutput.Remove(15, 3);
