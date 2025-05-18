@@ -14,7 +14,7 @@ namespace UnityEssentials
             return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git"));
         }
 
-        [MenuItem("Assets/Git Fetch and Pull", priority = 0)]
+        [MenuItem("Assets/Git Fetch and Pull", priority = 2)]
         public static void FetchOrigin() => FetchAndPull();
 
         private static void FetchAndPull()

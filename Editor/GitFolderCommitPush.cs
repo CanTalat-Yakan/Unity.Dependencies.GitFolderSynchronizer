@@ -22,7 +22,10 @@ namespace UnityEssentials
             return HasUncommittedChanges(path);
         }
 
-        [MenuItem("Assets/Git Commit and Push", priority = 0)]
+        [MenuItem("Assets/Git Push", priority = 1)]
+        public static void PushOrigin() => RunPushGitCommand(GetSelectedPath());
+
+        [MenuItem("Assets/Git Commit", priority = 0)]
         public static void ShowWindow()
         {
             string path = GetSelectedPath();
@@ -31,7 +34,7 @@ namespace UnityEssentials
                 _changedFiles = GetChangedFiles(path);
 
                 var window = CreateInstance<GitFolderSynchronizer>();
-                window.titleContent = new GUIContent("Git Push Window");
+                window.titleContent = new GUIContent("Git Commit Window");
                 window.minSize = new Vector2(420, 300);
                 window.position = new Rect(Screen.width / 2f, Screen.height / 2f, 420, 300);
                 window.ShowUtility();
@@ -47,7 +50,7 @@ namespace UnityEssentials
             string commitMessage = string.Empty;
             EditorGUILayout.BeginVertical("box");
             {
-                GUILayout.Label("Commit & Push to Git", EditorStyles.boldLabel);
+                GUILayout.Label("Commit to Git", EditorStyles.boldLabel);
 
                 EditorGUILayout.HelpBox("Repository: " + path, MessageType.Info);
 
@@ -78,7 +81,7 @@ namespace UnityEssentials
                 GUILayout.Space(10);
 
                 GUI.enabled = _changedFiles.Count > 0;
-                if (GUILayout.Button("Commit & Push", GUILayout.Height(30)))
+                if (GUILayout.Button("Commit", GUILayout.Height(30)))
                 {
                     CommitAndPush(path, commitMessage);
                     Close();
