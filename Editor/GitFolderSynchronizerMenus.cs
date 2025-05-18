@@ -35,10 +35,10 @@ namespace UnityEssentials
         public static bool ValidateGitCommit()
         {
             string path = GetSelectedPath();
-            return HasUncommittedChanges(path);
+            return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git")) 
+                && HasUncommittedChanges(path);
         }
 
-        [MenuItem("Assets/Git/Commit", true)]
         [MenuItem("Assets/Git/Push", true)]
         [MenuItem("Assets/Git/Fetch", true)]
         [MenuItem("Assets/Git/Pull", true)]
