@@ -5,6 +5,13 @@ using UnityEngine;
 
 namespace UnityEssentials
 {
+    /// <summary>
+    /// Provides functionality for synchronizing a Git repository within a selected folder in the Unity Editor.
+    /// </summary>
+    /// <remarks>This class includes methods for performing common Git operations such as commit, push, fetch,
+    /// and pull. It integrates with the Unity Editor through menu items, allowing users to execute Git commands
+    /// directly from the Unity interface. The class also validates the availability of Git operations based on the
+    /// selected folder's state.</remarks>
     public partial class GitFolderSynchronizer : EditorWindow
     {
         [MenuItem("Assets/Git Commit and Push", priority = 0)]
