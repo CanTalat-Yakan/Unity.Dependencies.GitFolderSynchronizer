@@ -12,67 +12,9 @@ namespace UnityEssentials
     /// <remarks>This class allows users to view uncommitted changes, enter a commit message, and perform Git
     /// operations such as committing and pushing changes directly from the Unity Editor. It is designed to streamline
     /// Git workflows for Unity projects by integrating basic Git functionality into the editor.</remarks>
-    public partial class GitFolderSynchronizer : EditorWindow
+    public partial class GitFolderSynchronizer
     {
         private const string EmptyCommitMessage = "⠀⠀⠀⠀⠀";
-
-        private Vector2 _scrollPosition;
-        private static List<string> _changedFiles = new();
-
-        /// <summary>
-        /// Renders the graphical user interface (GUI) for committing and pushing changes to a Git repository.
-        /// </summary>
-        /// <remarks>This method displays a user interface for viewing uncommitted changes, entering a
-        /// commit message,  and performing a commit and push operation to the selected Git repository. The interface
-        /// includes  a list of changed files, a text field for the commit message, and a button to execute the
-        /// operation.  The "Commit and Push" button is enabled only if there are uncommitted changes. Upon clicking the
-        /// button,  the changes are committed and pushed to the repository, and the window is closed.</remarks>
-        public void OnGUI()
-        {
-            string path = GetSelectedPath();
-            string commitMessage = string.Empty;
-            EditorGUILayout.BeginVertical("box");
-            {
-                GUILayout.Label("Push to Git", EditorStyles.boldLabel);
-
-                EditorGUILayout.HelpBox("Repository: " + path, MessageType.Info);
-
-                GUILayout.Space(5);
-                GUILayout.Label("Changed Files:", EditorStyles.boldLabel);
-
-                float remainingHeight = position.height - 200;
-
-                if (_changedFiles.Count == 0)
-                    EditorGUILayout.LabelField("No uncommitted changes detected.");
-                else
-                {
-                    _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUILayout.Height(remainingHeight));
-
-                    foreach (string file in _changedFiles)
-                        EditorGUILayout.LabelField(file);
-
-                    EditorGUILayout.EndScrollView();
-
-                    GUILayout.Label($"Total Changes: {_changedFiles.Count}", EditorStyles.miniBoldLabel);
-                }
-
-                GUILayout.FlexibleSpace();
-
-                GUILayout.Label("Commit Message:", EditorStyles.label);
-                commitMessage = EditorGUILayout.TextField(commitMessage);
-
-                GUILayout.Space(10);
-
-                GUI.enabled = _changedFiles.Count > 0;
-                if (GUILayout.Button("Commit and Push", GUILayout.Height(30)))
-                {
-                    CommitPushFetch(path, commitMessage);
-                    Close();
-                }
-                GUI.enabled = true;
-            }
-            EditorGUILayout.EndVertical();
-        }
 
         /// <summary>
         /// Commits all staged changes in the specified Git repository with the provided commit message.
@@ -111,7 +53,7 @@ namespace UnityEssentials
         {
             var path = GetSelectedPath();
             var (pushOutput, pushError, exitCode) = RunPushGitCommand(path);
-                        
+
             if (!string.IsNullOrEmpty(pushOutput))
                 Debug.Log("[Git] " + pushOutput);
 

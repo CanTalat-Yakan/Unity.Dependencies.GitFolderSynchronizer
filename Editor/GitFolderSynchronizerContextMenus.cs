@@ -1,7 +1,8 @@
 #if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
-using UnityEngine;
 
 namespace UnityEssentials
 {
@@ -12,21 +13,24 @@ namespace UnityEssentials
     /// and pull. It integrates with the Unity Editor through menu items, allowing users to execute Git commands
     /// directly from the Unity interface. The class also validates the availability of Git operations based on the
     /// selected folder's state.</remarks>
-    public partial class GitFolderSynchronizer : EditorWindow
+    public partial class GitFolderSynchronizer
     {
+        public static Action Close;
+        public static List<string> ChangedFiles = new();
+
         [MenuItem("Assets/Git Commit and Push", priority = 0)]
         public static void ShowWindow()
         {
             string path = GetSelectedPath();
             if (!string.IsNullOrEmpty(path))
             {
-                _changedFiles = GetChangedFiles(path);
-
-                var window = CreateInstance<GitFolderSynchronizer>();
-                window.titleContent = new GUIContent("Git Commit Window");
-                window.minSize = new Vector2(420, 300);
-                window.position = new Rect(Screen.width / 2f, Screen.height / 2f, 420, 300);
-                window.ShowUtility();
+                ChangedFiles = GetChangedFiles(path);
+                new EditorWindowDrawer()
+                    .ShowUtility("Git Commit and Push Window", new(420, 300))
+                    .SetHeader(Header)
+                    .SetBody(Body, out _)
+                    .SetFooter(Footer)
+                    .GetCloseEvent(out Close);
             }
         }
 
@@ -52,7 +56,7 @@ namespace UnityEssentials
         public static bool ValidateGitCommit()
         {
             string path = GetSelectedPath();
-            return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git")) 
+            return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git"))
                 && HasUncommittedChanges(path);
         }
 

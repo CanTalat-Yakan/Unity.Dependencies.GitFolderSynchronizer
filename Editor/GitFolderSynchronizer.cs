@@ -14,7 +14,7 @@ namespace UnityEssentials
     /// Git commands such as pushing changes to a remote repository. It relies on EditorPrefs to store and retrieve a
     /// Git token for authentication. The class also includes utility methods for determining the selected folder in the
     /// Unity project and handling Git command execution.</remarks>
-    public partial class GitFolderSynchronizer : EditorWindow
+    public partial class GitFolderSynchronizer
     {
         private const string TokenKey = "GitToken";
 

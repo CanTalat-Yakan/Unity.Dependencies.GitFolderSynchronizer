@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using UnityEditor;
 using UnityEngine;
 
 namespace UnityEssentials
@@ -11,7 +10,7 @@ namespace UnityEssentials
     /// methods for  performing common Git operations such as fetching and pulling changes from a remote repository. 
     /// The operations are executed on the currently selected repository path, and feedback is provided  through Unity's
     /// logging system.</remarks>
-    public partial class GitFolderSynchronizer : EditorWindow
+    public partial class GitFolderSynchronizer
     {
         /// <summary>
         /// Executes a Git fetch operation on the currently selected repository.
