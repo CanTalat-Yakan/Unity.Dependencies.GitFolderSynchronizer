@@ -10,6 +10,7 @@ namespace UnityEssentials
     public partial class GitFolderSynchronizer
     {
         public static Action Close;
+
         public static List<string> ChangedFiles = new();
 
         [MenuItem("Assets/Git Commit and Push", true)]
