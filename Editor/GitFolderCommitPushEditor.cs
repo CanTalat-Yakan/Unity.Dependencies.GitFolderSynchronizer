@@ -62,13 +62,10 @@ namespace UnityEssentials
             string path = GetSelectedPath();
             string commitMessage = string.Empty;
 
-            using (new GUILayout.HorizontalScope())
-            {
-                GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
-                commitMessage = EditorGUILayout.TextField(commitMessage);
-            }
+            GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
+            commitMessage = EditorGUILayout.TextField(commitMessage);
 
-            GUILayout.Space(5);
+            GUILayout.Space(4);
 
             GUI.enabled = ChangedFiles.Count > 0;
             if (GUILayout.Button("Commit and Push", GUILayout.Height(24)))
