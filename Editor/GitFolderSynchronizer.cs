@@ -1,9 +1,9 @@
 ﻿#if UNITY_EDITOR
-using UnityEditor;
+using System;
 using System.IO;
 using System.Diagnostics;
+using UnityEditor;
 using Debug = UnityEngine.Debug;
-using System;
 
 namespace UnityEssentials
 {
