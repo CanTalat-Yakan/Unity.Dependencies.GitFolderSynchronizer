@@ -30,8 +30,8 @@ namespace UnityEssentials
                 ChangedFiles = GetChangedFiles(path);
                 new EditorWindowDrawer("Git Commit and Push Window", new(420, 300))
                     .SetHeader(Header)
-                    .SetBody(Body)
-                    .SetFooter(Footer)
+                    .SetBody(Body, EditorWindowDrawer.GUISkin.Margin)
+                    .SetFooter(Footer, EditorWindowDrawer.GUISkin.HelpBox)
                     .GetCloseEvent(out Close)
                     .ShowUtility();
             }
@@ -51,6 +51,10 @@ namespace UnityEssentials
                 EditorGUILayout.LabelField("No uncommitted changes detected.");
             else foreach (string file in ChangedFiles)
                     EditorGUILayout.LabelField(file);
+
+            GUILayout.FlexibleSpace();
+
+            GUILayout.Label($"Total Changes: {ChangedFiles.Count}", EditorStyles.miniBoldLabel);
         }
 
         public static void Footer()
@@ -58,12 +62,11 @@ namespace UnityEssentials
             string path = GetSelectedPath();
             string commitMessage = string.Empty;
 
-            GUILayout.Label($"Total Changes: {ChangedFiles.Count}", EditorStyles.miniBoldLabel);
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
-            commitMessage = EditorGUILayout.TextField(commitMessage);
-            GUILayout.EndHorizontal();
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
+                commitMessage = EditorGUILayout.TextField(commitMessage);
+            }
 
             GUILayout.Space(5);
 
