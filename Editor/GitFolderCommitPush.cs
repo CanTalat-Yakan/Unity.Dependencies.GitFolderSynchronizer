@@ -7,10 +7,9 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer
     {
-        private const string EmptyCommitMessage = "⠀⠀⠀⠀⠀";
-
         private static void Commit(string path, string commitMessage)
         {
+            const string EmptyCommitMessage = "⠀⠀⠀⠀⠀";
             bool emptyCommitMessage = false;
             if (emptyCommitMessage = string.IsNullOrEmpty(commitMessage))
                 commitMessage = EmptyCommitMessage;
