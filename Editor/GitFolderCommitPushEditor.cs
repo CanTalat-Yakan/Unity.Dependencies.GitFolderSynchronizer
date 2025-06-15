@@ -30,8 +30,8 @@ namespace UnityEssentials
                 ChangedFiles = GetChangedFiles(path);
                 new EditorWindowDrawer("Git Commit and Push Window", new(420, 300))
                     .SetHeader(Header)
-                    .SetBody(Body, EditorWindowDrawer.GUISkin.Margin)
-                    .SetFooter(Footer, EditorWindowDrawer.GUISkin.HelpBox)
+                    .SetBody(Body, EditorWindowStyle.Margin)
+                    .SetFooter(Footer, EditorWindowStyle.HelpBox)
                     .GetCloseEvent(out Close)
                     .ShowUtility();
             }
@@ -49,7 +49,8 @@ namespace UnityEssentials
 
             if (ChangedFiles.Count == 0)
                 EditorGUILayout.LabelField("No uncommitted changes detected.");
-            else foreach (string file in ChangedFiles)
+            
+            foreach (string file in ChangedFiles)
                     EditorGUILayout.LabelField(file);
 
             GUILayout.FlexibleSpace();
