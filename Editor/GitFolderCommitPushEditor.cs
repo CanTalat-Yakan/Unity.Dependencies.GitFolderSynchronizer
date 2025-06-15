@@ -14,7 +14,7 @@ namespace UnityEssentials
         public static List<string> ChangedFiles = new();
 
         [MenuItem("Assets/Git Commit and Push", true)]
-        public static bool ValidateGitCommit()
+        public static bool ValidateGitFolderSynchronizer()
         {
             string path = GetSelectedPath();
             return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git"))
