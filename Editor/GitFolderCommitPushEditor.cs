@@ -49,9 +49,9 @@ namespace UnityEssentials
 
             if (ChangedFiles.Count == 0)
                 EditorGUILayout.LabelField("No uncommitted changes detected.");
-            
+
             foreach (string file in ChangedFiles)
-                    EditorGUILayout.LabelField(file);
+                EditorGUILayout.LabelField(file);
 
             GUILayout.FlexibleSpace();
 
@@ -63,10 +63,11 @@ namespace UnityEssentials
             string path = GetSelectedPath();
             string commitMessage = string.Empty;
 
-            GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
-            commitMessage = EditorGUILayout.TextField(commitMessage);
-
-            GUILayout.Space(4);
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
+                commitMessage = EditorGUILayout.TextField(commitMessage);
+            }
 
             GUI.enabled = ChangedFiles.Count > 0;
             if (GUILayout.Button("Commit and Push", GUILayout.Height(24)))
