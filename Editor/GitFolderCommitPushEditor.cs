@@ -28,12 +28,13 @@ namespace UnityEssentials
             if (!string.IsNullOrEmpty(path))
             {
                 ChangedFiles = GetChangedFiles(path);
-                new EditorWindowDrawer("Git Commit and Push Window", new(420, 300))
+                var window = EditorWindowDrawer
+                    .CreateInstance("Git Commit and Push Window", new(420, 300))
                     .SetHeader(Header)
                     .SetBody(Body, EditorWindowStyle.Margin)
                     .SetFooter(Footer, EditorWindowStyle.HelpBox)
                     .GetCloseEvent(out Close)
-                    .ShowUtility();
+                    .ShowAsUtility();
             }
         }
 
