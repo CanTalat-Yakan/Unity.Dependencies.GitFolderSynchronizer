@@ -12,12 +12,12 @@ namespace UnityEssentials
         private static void Commit(string path, string commitMessage)
         {
             const string EmptyCommitMessage = "⠀⠀⠀⠀⠀";
-            bool emptyCommitMessage = string.IsNullOrEmpty(commitMessage);
-            if (emptyCommitMessage)
+            bool emptyCommitMessage = false;
+            if (emptyCommitMessage = string.IsNullOrEmpty(commitMessage))
                 commitMessage = EmptyCommitMessage;
 
             RunGitCommand(path, "add .");
-            var (commitOutput, commitError, _) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
+            var (commitOutput, commitError, exitCode) = RunGitCommand(path, $"commit -m \"{commitMessage}\"");
 
             if (emptyCommitMessage)
                 commitOutput = commitOutput.Remove(15, 15);
@@ -43,14 +43,14 @@ namespace UnityEssentials
 
         private static bool HasUncommittedChanges(string path)
         {
-            var (output, _, _) = RunGitCommand(path, "status --porcelain");
+            var (output, error, exitCode) = RunGitCommand(path, "status --porcelain");
             return !string.IsNullOrWhiteSpace(output);
         }
 
         private static List<string> GetChangedFiles(string path)
         {
             List<string> files = new();
-            var (output, _, _) = RunGitCommand(path, "status --porcelain");
+            var (output, error, exitCode) = RunGitCommand(path, "status --porcelain");
             using (StringReader reader = new(output))
             {
                 string line;
@@ -98,36 +98,6 @@ namespace UnityEssentials
             {
                 Debug.LogError($"[Git] Failed to read log: {logErr}");
                 return;
-            }
-
-            StringBuilder sb = new();
-            sb.AppendLine("CHANGELOG");
-            sb.AppendLine("=========");
-            sb.AppendLine($"Repository: {path}");
-            sb.AppendLine($"Branch: {branch}");
-            sb.AppendLine($"Generated: {DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ} UTC");
-            sb.AppendLine();
-
-            using (StringReader reader = new(logOut))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    if (string.IsNullOrWhiteSpace(line)) continue;
-                    sb.Append("- ");
-                    sb.AppendLine(line.Trim());
-                }
-            }
-
-            string changelogPath = Path.Combine(path, "CHANGELOG.txt");
-            try
-            {
-                File.WriteAllText(changelogPath, sb.ToString(), Encoding.UTF8);
-                Debug.Log($"[Git] CHANGELOG generated at: {changelogPath}");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[Git] Failed to write CHANGELOG: {ex.Message}");
             }
         }
     }

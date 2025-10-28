@@ -28,7 +28,7 @@ namespace UnityEssentials
             if (!string.IsNullOrEmpty(path))
             {
                 ChangedFiles = GetChangedFiles(path);
-                EditorWindowDrawer
+                var window = EditorWindowDrawer
                     .CreateInstance("Git Commit and Push Window", new(420, 300))
                     .SetHeader(Header)
                     .SetBody(Body, EditorWindowStyle.Margin)
@@ -76,38 +76,9 @@ namespace UnityEssentials
                 Commit(path, commitMessage);
                 Push();
                 Fetch();
-                GenerateChangelog(path);
-                AssetDatabase.Refresh();
                 Close();
             }
             GUI.enabled = true;
-
-            GUILayout.Space(6);
-            if (GUILayout.Button("Generate CHANGELOG.txt", GUILayout.Height(22)))
-            {
-                GenerateChangelog(path);
-                AssetDatabase.Refresh();
-            }
-        }
-
-        [MenuItem("Assets/Git Generate CHANGELOG.txt", true)]
-        public static bool ValidateGenerateChangelog()
-        {
-            string path = GetSelectedPath();
-            return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git"));
-        }
-
-        [MenuItem("Assets/Git Generate CHANGELOG.txt", priority = -98)]
-        public static void MenuGenerateChangelog()
-        {
-            string path = GetSelectedPath();
-            if (string.IsNullOrEmpty(path))
-            {
-                Debug.LogError("[Git] No repository selected.");
-                return;
-            }
-            GenerateChangelog(path);
-            AssetDatabase.Refresh();
         }
     }
 }
