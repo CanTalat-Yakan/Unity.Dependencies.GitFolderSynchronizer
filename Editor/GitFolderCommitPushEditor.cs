@@ -31,8 +31,8 @@ namespace UnityEssentials
                 var window = EditorWindowDrawer
                     .CreateInstance("Git Commit and Push Window", new(420, 300))
                     .SetHeader(Header, EditorWindowStyle.Toolbar)
-                    .SetBody(Body)
-                    .SetFooter(Footer)
+                    .SetBody(Body, EditorWindowStyle.Margin)
+                    .SetFooter(Footer, EditorWindowStyle.HelpBox)
                     .GetCloseEvent(out Close)
                     .ShowAsUtility();
             }
@@ -47,32 +47,14 @@ namespace UnityEssentials
             commitMessage = EditorGUILayout.TextField(commitMessage, EditorStyles.toolbarTextField);
 
             GUI.enabled = ChangedFiles.Count > 0;
-            if (GUILayout.Button("Commit and Push", EditorStyles.toolbarButton))
-            {
-                Commit(path, commitMessage);
-                Push();
-                Fetch();
-                Close();
-            }
+            if (GUILayout.Button("Fetch and Pull", EditorStyles.toolbarButton))
+                FetchPull();
 
             GUI.enabled = true;
         }
 
         public static void Body()
         {
-            string path = GetSelectedPath();
-            
-            if (!string.IsNullOrEmpty(path))
-            {
-                int assetsIndex = path.IndexOf("Assets", StringComparison.OrdinalIgnoreCase);
-                if (assetsIndex >= 0)
-                    path = path.Substring(assetsIndex);
-            }
-            
-            EditorGUILayout.HelpBox("Git Repository Path: \n" + path, MessageType.Info);
-            
-            GUILayout.Space(4);
-            
             GUILayout.Label("Changed Files:", EditorStyles.boldLabel);
 
             if (ChangedFiles.Count == 0)
@@ -84,7 +66,28 @@ namespace UnityEssentials
 
         public static void Footer()
         {
+            string path = GetSelectedPath();
+            string commitMessage = string.Empty;
+            
+            if (!string.IsNullOrEmpty(path))
+            {
+                int assetsIndex = path.IndexOf("Assets", StringComparison.OrdinalIgnoreCase);
+                if (assetsIndex >= 0)
+                    path = path.Substring(assetsIndex);
+            }
+            
             GUILayout.Label($"Total Changes: {ChangedFiles.Count}", EditorStyles.miniBoldLabel);
+            
+            EditorGUILayout.HelpBox("Git Repository Path: \n" + path, MessageType.Info);
+            
+            if (GUILayout.Button("Commit and Push"))
+            {
+                Commit(path, commitMessage);
+                Push();
+                Fetch();
+                Close();
+            }
+
         }
     }
 }

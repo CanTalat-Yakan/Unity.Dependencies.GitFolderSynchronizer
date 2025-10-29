@@ -93,7 +93,7 @@ namespace UnityEssentials
             string branch = string.IsNullOrWhiteSpace(branchOut) ? "(unknown)" : branchOut.Trim();
 
             // Get commit log: ISO date and subject, newest first
-            var (logOut, logErr, logCode) = RunGitCommand(path, "log --date=iso-strict --pretty=format:%ad — %h — %s");
+            var (logOut, logErr, logCode) = RunGitCommand(path, "log --date=iso-strict --pretty=format:%ad  -  %h  -  %s");
             if (logCode != 0)
             {
                 Debug.LogError($"[Git] Failed to read log: {logErr}");
