@@ -71,7 +71,7 @@ namespace UnityEssentials
             
             EditorGUILayout.HelpBox("Git Repository Path: \n" + path, MessageType.Info);
             
-            GUILayout.Space(10);
+            GUILayout.Space(4);
             
             GUILayout.Label("Changed Files:", EditorStyles.boldLabel);
 
