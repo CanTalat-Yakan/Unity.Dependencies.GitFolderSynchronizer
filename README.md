@@ -45,26 +45,6 @@ Selection logic: select any folder (or asset inside a folder) in the Project win
 ## Authentication (HTTPS token)
 Push uses a personal access token (PAT) stored in EditorPrefs under the key `GitToken`.
 
-- Key: `GitToken`
-- Supported remotes: HTTPS only (e.g., `https://github.com/<org>/<repo>.git`)
-- Unsupported for push: SSH remotes (e.g., `git@github.com:...`) — use HTTPS or push via your terminal/GUI
-
-Set the token in code once (Editor):
-
-```csharp
-// Put this in an Editor script, run once, then delete if you like~~~~
-using UnityEditor;
-
-public static class GitAuthSetup
-{
-    [MenuItem("Tools/Git/Set Token (Example)")]
-    public static void SetToken()
-    {
-        EditorPrefs.SetString("GitToken", "<your-personal-access-token>");
-    }
-}
-```
-
 Tips
 - GitHub token scopes: usually `repo` is enough for private repos; for public repos, narrower scopes may suffice.
 - Security: EditorPrefs stores the token in your user profile; treat it like a password. Prefer per-user setup; don’t commit tokens.
