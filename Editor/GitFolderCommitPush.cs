@@ -78,10 +78,10 @@ namespace UnityEssentials
                 Debug.LogError("[Git] " + commitError);
         }
 
-        private static void Push()
+        private static void Push(string token)
         {
             var path = GetSelectedPath();
-            var (pushOutput, pushError, exitCode) = RunPushGitCommand(path);
+            var (pushOutput, pushError, exitCode) = RunPushGitCommand(path, token);
 
             if (!string.IsNullOrEmpty(pushOutput))
                 Debug.Log("[Git] " + pushOutput);

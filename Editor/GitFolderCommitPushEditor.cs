@@ -95,21 +95,66 @@ namespace UnityEssentials
 
             if (GUILayout.Button("Fetch and Pull", EditorStyles.toolbarButton))
             {
-                FetchPull();
-                RefreshState(path);
-                Repaint?.Invoke();
+                StartProgress("Git Fetch & Pull", report =>
+                {
+                    if (string.IsNullOrEmpty(path)) return;
+
+                    report("Fetching from remote...", 0.2f);
+                    var (_, fetchErr, fetchCode) = RunGitCommand(path, "fetch");
+
+                    report("Checking tracking status...", 0.4f);
+                    bool isBehind = CheckIfBehind(path);
+
+                    if (fetchCode != 0)
+                    {
+                        Debug.LogError($"[Git] Fetch failed: {fetchErr}");
+                        return;
+                    }
+
+                    if (isBehind)
+                    {
+                        report("Pulling changes...", 0.7f);
+                        var (pullOut, pullErr, pullCode) = RunGitCommand(path, "pull");
+                        if (pullCode != 0)
+                            Debug.LogError($"[Git] Pull failed: {pullErr}");
+                        else
+                            Debug.Log($"[Git] Successfully pulled changes:\n{pullOut}");
+                    }
+
+                    report("Done", 1f);
+                },
+                onComplete: () => { RefreshState(path); Repaint?.Invoke(); });
             }
 
             if (hasUnpushedOnly)
             {
                 if (GUILayout.Button("Push", EditorStyles.toolbarButton))
                 {
-                    Push();
-                    RefreshState(path);
-                    if ((UnpushedCommits?.Count ?? 0) == 0 && ChangedFiles.Count == 0)
-                        Close?.Invoke();
-                    else
-                        Repaint?.Invoke();
+                    var capturedToken = Token; // capture on main thread
+                    StartProgress("Git Push", report =>
+                    {
+                        if (string.IsNullOrEmpty(path)) return;
+
+                        report("Pushing to remote...", 0.6f);
+                        var (pushOut, pushErr, pushCode) = RunPushGitCommand(path, capturedToken);
+                        if (pushCode != 0)
+                            Debug.LogError($"[Git] Push failed: {pushErr}");
+                        else if (!string.IsNullOrEmpty(pushOut))
+                            Debug.Log("[Git] " + pushOut);
+
+                        report("Updating tracking info...", 0.9f);
+                        RunGitCommand(path, "fetch");
+
+                        report("Done", 1f);
+                    },
+                    onComplete: () =>
+                    {
+                        RefreshState(path);
+                        if ((UnpushedCommits?.Count ?? 0) == 0 && ChangedFiles.Count == 0)
+                            Close?.Invoke();
+                        else
+                            Repaint?.Invoke();
+                    });
                 }
             }
 
@@ -191,15 +236,52 @@ namespace UnityEssentials
                 GUI.enabled = ChangedFiles.Count > 0;
                 if (GUILayout.Button("Commit and Push"))
                 {
-                    Commit(path, _commitMessage);
-                    Push();
-                    Fetch(); // update remote tracking info
+                    string message = _commitMessage; // capture
+                    var capturedToken = Token; // capture token on main thread
+                    StartProgress("Commit and Push", report =>
+                    {
+                        if (string.IsNullOrEmpty(path)) return;
 
-                    RefreshState(path);
-                    if ((UnpushedCommits?.Count ?? 0) == 0 && ChangedFiles.Count == 0)
-                        Close?.Invoke();
-                    else
-                        Repaint?.Invoke();
+                        report("Staging changes...", 0.2f);
+                        RunGitCommand(path, "add .");
+
+                        // Commit with empty-message placeholder if needed (keep original behavior)
+                        const string EmptyCommitMessage = "⠀⠀⠀⠀⠀";
+                        bool emptyCommitMessage = string.IsNullOrEmpty(message);
+                        string effectiveMessage = emptyCommitMessage ? EmptyCommitMessage : message;
+
+                        report("Creating commit...", 0.45f);
+                        var (commitOut, commitErr, commitCode) = RunGitCommand(path, $"commit -m \"{effectiveMessage}\"");
+                        if (emptyCommitMessage && !string.IsNullOrEmpty(commitOut) && commitOut.Length >= 30)
+                        {
+                            // Mirror original output post-processing
+                            commitOut = commitOut.Remove(15, 15);
+                        }
+                        if (commitCode != 0 && !string.IsNullOrEmpty(commitErr))
+                            Debug.LogError("[Git] " + commitErr);
+                        else if (!string.IsNullOrEmpty(commitOut))
+                            Debug.Log("[Git] " + commitOut);
+
+                        report("Pushing to remote...", 0.7f);
+                        var (pushOut, pushErr, pushCode) = RunPushGitCommand(path, capturedToken);
+                        if (pushCode != 0 && !string.IsNullOrEmpty(pushErr))
+                            Debug.LogError("[Git] " + pushErr);
+                        else if (!string.IsNullOrEmpty(pushOut))
+                            Debug.Log("[Git] " + pushOut);
+
+                        report("Updating tracking info...", 0.9f);
+                        RunGitCommand(path, "fetch");
+
+                        report("Done", 1f);
+                    },
+                    onComplete: () =>
+                    {
+                        RefreshState(path);
+                        if ((UnpushedCommits?.Count ?? 0) == 0 && ChangedFiles.Count == 0)
+                            Close?.Invoke();
+                        else
+                            Repaint?.Invoke();
+                    });
                 }
                 GUI.enabled = true;
             }
@@ -207,12 +289,29 @@ namespace UnityEssentials
             {
                 if (GUILayout.Button($"Push {(UnpushedCommits?.Count ?? 0)} Commit(s)"))
                 {
-                    Push();
-                    RefreshState(path);
-                    if ((UnpushedCommits?.Count ?? 0) == 0)
-                        Close?.Invoke();
-                    else
-                        Repaint?.Invoke();
+                    var capturedToken = Token; // capture token on main thread
+                    StartProgress("Git Push", report =>
+                    {
+                        report("Pushing to remote...", 0.6f);
+                        var (pushOut, pushErr, pushCode) = RunPushGitCommand(path, capturedToken);
+                        if (pushCode != 0)
+                            Debug.LogError("[Git] " + pushErr);
+                        else if (!string.IsNullOrEmpty(pushOut))
+                            Debug.Log("[Git] " + pushOut);
+
+                        report("Updating tracking info...", 0.9f);
+                        RunGitCommand(path, "fetch");
+
+                        report("Done", 1f);
+                    },
+                    onComplete: () =>
+                    {
+                        RefreshState(path);
+                        if ((UnpushedCommits?.Count ?? 0) == 0)
+                            Close?.Invoke();
+                        else
+                            Repaint?.Invoke();
+                    });
                 }
             }
         }

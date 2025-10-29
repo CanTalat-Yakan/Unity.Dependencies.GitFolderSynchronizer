@@ -17,12 +17,6 @@ namespace UnityEssentials
         [MenuItem("Assets/Git Fetch and Pull", priority = -99)]
         public static void FetchPull()
         {
-            Fetch();
-            Pull();
-        }
-
-        private static void Fetch()
-        {
             string path = GetSelectedPath();
             if (string.IsNullOrEmpty(path))
             {
@@ -30,36 +24,32 @@ namespace UnityEssentials
                 return;
             }
 
-            var (fetchOutput, fetchError, fetchExitCode) = RunGitCommand(path, "fetch");
-            if (fetchExitCode != 0)
+            StartProgress("Git Fetch & Pull", report =>
             {
-                Debug.LogError($"[Git] Fetch failed: {fetchError}");
-                return;
-            }
-        }
-
-        private static void Pull()
-        {
-            string path = GetSelectedPath();
-            if (string.IsNullOrEmpty(path))
-            {
-                Debug.LogError("[Git] No repository selected.");
-                return;
-            }
-
-            bool isBehind = CheckIfBehind(path);
-            if (isBehind)
-            {
-                // Pull changes
-                var (pullOutput, pullError, pullExitCode) = RunGitCommand(path, "pull");
-                if (pullExitCode != 0)
+                report("Fetching from remote...", 0.2f);
+                var (_, fetchErr, fetchCode) = RunGitCommand(path, "fetch");
+                if (fetchCode != 0)
                 {
-                    Debug.LogError($"[Git] Pull failed: {pullError}");
+                    Debug.LogError($"[Git] Fetch failed: {fetchErr}");
                     return;
                 }
-                Debug.Log($"[Git] Successfully pulled changes:\n{pullOutput}");
-            }
-            else Debug.Log("[Git] Repository is up-to-date");
+
+                report("Checking tracking status...", 0.5f);
+                bool isBehind = CheckIfBehind(path);
+
+                if (isBehind)
+                {
+                    report("Pulling changes...", 0.8f);
+                    var (pullOut, pullErr, pullCode) = RunGitCommand(path, "pull");
+                    if (pullCode != 0)
+                        Debug.LogError($"[Git] Pull failed: {pullErr}");
+                    else if (!string.IsNullOrEmpty(pullOut))
+                        Debug.Log($"[Git] Successfully pulled changes:\n{pullOut}");
+                }
+
+                report("Done", 1f);
+            },
+            onComplete: () => { /* nothing else to update globally here */ });
         }
 
         private static bool CheckIfBehind(string repositoryPath)

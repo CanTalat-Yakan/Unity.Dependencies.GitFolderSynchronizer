@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 using UnityEditor;
 using Debug = UnityEngine.Debug;
 
@@ -10,6 +11,72 @@ namespace UnityEssentials
     public partial class GitFolderSynchronizer
     {
         private const string TokenKey = "GitToken";
+
+        // Background progress runner state
+        private static volatile bool s_ProgressActive;
+        private static string s_ProgressTitle;
+        private static string s_ProgressInfo;
+        private static float s_ProgressValue;
+        private static Action s_OnProgressComplete;
+
+        private static void StartProgress(string title, Action<Action<string, float>> work, Action onComplete)
+        {
+            if (s_ProgressActive)
+            {
+                Debug.LogWarning("[Git] Another operation is in progress.");
+                return;
+            }
+
+            s_ProgressActive = true;
+            s_ProgressTitle = title;
+            s_ProgressInfo = "Starting...";
+            s_ProgressValue = 0f;
+            s_OnProgressComplete = onComplete;
+
+            // Hook updater on main thread
+            EditorApplication.update -= OnProgressUpdate;
+            EditorApplication.update += OnProgressUpdate;
+
+            // Start background work
+            new Thread(() =>
+            {
+                try
+                {
+                    void Report(string info, float progress)
+                    {
+                        s_ProgressInfo = info;
+                        s_ProgressValue = Math.Clamp(progress, 0f, 1f);
+                    }
+
+                    work(Report);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError("[Git] Operation failed: " + ex);
+                }
+                finally
+                {
+                    s_ProgressActive = false;
+                }
+            }) { IsBackground = true }.Start();
+        }
+
+        private static void OnProgressUpdate()
+        {
+            if (s_ProgressActive)
+            {
+                EditorUtility.DisplayProgressBar(s_ProgressTitle, s_ProgressInfo, s_ProgressValue);
+                return;
+            }
+
+            // Done: clear and cleanup
+            EditorUtility.ClearProgressBar();
+            EditorApplication.update -= OnProgressUpdate;
+            var complete = s_OnProgressComplete;
+            s_OnProgressComplete = null;
+            try { complete?.Invoke(); }
+            catch (Exception ex) { Debug.LogError("[Git] Completion handler failed: " + ex); }
+        }
 
         /// <summary>
         /// Executes a Git command in the specified directory and captures its output, error messages, and exit code.
@@ -30,7 +97,6 @@ namespace UnityEssentials
             string output = string.Empty;
             string error = string.Empty;
             int exitCode = -1;
-            string token = EditorPrefs.GetString(TokenKey, "");
 
             try
             {
@@ -70,17 +136,18 @@ namespace UnityEssentials
         /// authentication. If the remote URL uses SSH, the method will fail because tokens are not compatible with SSH
         /// authentication, and SSH keys should be used instead.</remarks>
         /// <param name="path">The file system path to the local Git repository.</param>
+        /// <param name="token">The authentication token to use for the push operation. This should be a valid
+        /// token with permissions to access the repository.</param>
         /// <returns>A tuple containing the following: <list type="bullet"> <item><description><c>output</c>: The standard output
         /// from the Git command.</description></item> <item><description><c>error</c>: The standard error output from
         /// the Git command, if any.</description></item> <item><description><c>exitCode</c>: The exit code of the Git
         /// command. A value of 0 indicates success; non-zero indicates failure.</description></item> </list></returns>
-        private static (string output, string error, int exitCode) RunPushGitCommand(string path)
+        private static (string output, string error, int exitCode) RunPushGitCommand(string path, string token)
         {
-            string token = EditorPrefs.GetString(TokenKey, "");
             if (string.IsNullOrEmpty(token))
             {
                 Debug.LogError("[Git] No token found for push operation");
-                return ("", "No Git token configured in EditorPrefs", -1);
+                return ("", "No Git token configured", -1);
             }
 
             // First get the remote URL
