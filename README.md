@@ -1,116 +1,96 @@
 # Unity Essentials
 
-**Unity Essentials** is a lightweight, modular utility namespace designed to streamline development in Unity.
-It provides a collection of foundational tools, extensions, and helpers to enhance productivity and maintain clean code architecture.
+This module is part of the Unity Essentials ecosystem and follows the same lightweight, editor-first approach.
+Unity Essentials is a lightweight, modular set of editor utilities and helpers that streamline Unity development. It focuses on clean, dependency-free tools that work well together.
 
-## Installation
-
-Install the Unity Essentials entry package via Unity's Package Manager, then install all modules from the Tools menu:
-
-1) Add the entry package (via Git URL)
-- Open: Window → Package Manager
-- Click the + button → "Add package from git URL…"
-- Paste this URL and click Add:
-
-```
-https://github.com/CanTalat-Yakan/UnityEssentials.git
-```
-
-2) Install or update all Unity Essentials packages
-- In Unity, go to: Tools → Install & Update UnityEssentials
-- Use the installer to install all packages (or select only the ones you need)
-- Re-run the same menu at any time to update packages to the latest versions
-
-## 📦 This Package
-
-This package is part of the **Unity Essentials** ecosystem.  
-It integrates seamlessly with other Unity Essentials modules and follows the same lightweight, dependency-free philosophy.
-
-## 🌐 Namespace
-
-All utilities are under the `UnityEssentials` namespace. This keeps your project clean, consistent, and conflict-free.
+All utilities are under the `UnityEssentials` namespace.
 
 ```csharp
 using UnityEssentials;
 ```
 
+## Installation
+
+Install the Unity Essentials entry package via Unity's Package Manager, then install modules from the Tools menu.
+
+- Add the entry package (via Git URL)
+  - Window → Package Manager
+  - "+" → "Add package from git URL…"
+  - Paste: `https://github.com/CanTalat-Yakan/UnityEssentials.git`
+
+- Install or update Unity Essentials packages
+  - Tools → Install & Update UnityEssentials
+  - Install all or select individual modules; run again anytime to update
+
 ---
 
 # Git Folder Synchronizer
 
-A tiny editor utility that adds convenient Assets menu actions to fetch/pull and commit/push a Git repository directly from the Unity Project window.
+> Quick overview: Git CLI commands for the selected folder: fetch, pull, stage, commit and push using a stored HTTPS personal access token.
 
-- Context-aware: works on the currently selected folder; any folder inside a Git repo is valid
-- Simple review UI: lists changed files and lets you enter a commit message
-- Push via HTTPS token stored in EditorPrefs
+A tiny editor utility that adds convenient Assets menu actions to fetch/pull and commit/push a Git repository directly from the Unity Project window.
 
 ![screenshot](Documentation/Screenshot.png)
 
+## Features
+- Context-aware: works on the currently selected folder inside a Git repository
+- Simple review UI: lists changed files and lets you enter a commit message
+- Push via HTTPS using a token stored in EditorPrefs
+
 ## Requirements
-- Unity: 6.0 (per `package.json`) or newer
-- Git CLI installed and available on the system PATH
-- Editor-only (wrapped in `#if UNITY_EDITOR`)
+- Unity Editor 6000.0+ (Editor-only; no runtime code)
+- Git installed and available on your PATH
+- Personal Access Token (PAT) for HTTPS operations (stored in EditorPrefs as `GitToken`)
+- Optional: Git LFS if repositories use LFS
 
-## Menu commands
-- Assets > Git Fetch and Pull
-  - Runs `git fetch` then `git pull` in the selected folder’s repository
-  - Only enabled when the selection is inside a Git repo (has a `.git` folder at or above the selected folder)
-- Assets > Git Commit and Push
-  - Opens a small utility window listing changed files (from `git status --porcelain`)
-  - Lets you enter a commit message, then runs: `git add .`, `git commit -m "…"`, and `git push`
-  - Only enabled if there are uncommitted changes
-
-Selection logic: select any folder (or asset inside a folder) in the Project window; the tool resolves the on-disk path and runs Git commands there. If you select a subfolder within a repo, Git still runs fine in that subdirectory.
-
-## Authentication (HTTPS token)
-Push uses a personal access token (PAT) stored in EditorPrefs under the key `GitToken`.
-
-Tips
-- GitHub token scopes: usually `repo` is enough for private repos; for public repos, narrower scopes may suffice.
-- Security: EditorPrefs stores the token in your user profile; treat it like a password. Prefer per-user setup; don’t commit tokens.
-- If your remote is SSH, the tool will log an error for push. You can still use Fetch/Pull, or switch your remote to HTTPS.
-
-## How it works (under the hood)
-- Fetch/Pull
-  - `git fetch` followed by a check for “behind” status via `git status --porcelain -b` and then `git pull` if needed
-- Commit/Push
-  - Gathers changes via `git status --porcelain`
-  - Stages everything with `git add .`
-  - Commits with your message (accepts empty messages, though not recommended)
-  - Pushes to `origin` using an authenticated HTTPS URL constructed with the token
+Tip: If the tool can’t find Git/LFS, install them and restart Unity so PATH updates are picked up.
 
 ## Usage
-1) Ensure Git is installed and reachable from your shell/terminal.
-2) In the Project window, select a folder inside the repo you want to operate on.
-3) For pulling remote changes:
-   - Use Assets > Git Fetch and Pull
-   - If the branch is behind, the tool runs `git pull` and logs the result.
-4) For committing and pushing your changes:
-   - Use Assets > Git Commit and Push
-   - Review the changed files list and enter a commit message
-   - Click “Commit and Push” to stage, commit, push, and then fetch
+1) Ensure Git is installed and reachable from your shell/terminal
+2) In the Project window, select a folder inside the repo you want to operate on
+3) For pulling remote changes: Assets → Git Fetch and Pull (pulls only if behind)
+4) For committing/pushing: Assets → Git Commit and Push → review changes → enter a message → Commit and Push
 
-## Notes and limitations
-- Staging: the tool uses `git add .` and commits all current changes in the selected repository path
-- Partial commits: not supported via the UI; use your Git client if you need fine-grained staging
-- Remotes: push targets `origin` and the current HEAD; multiple remotes or custom refs aren’t exposed in the UI
-- SSH remotes: push is not supported (HTTPS only for push)
-- Commit message: empty messages are allowed but discouraged; provide a meaningful message when possible
+## Menu Commands
+- Assets → Git Fetch and Pull
+  - Runs `git fetch` then `git pull` in the selected folder’s repository
+  - Enabled when the selection is inside a Git repo (a `.git` folder exists)
+- Assets → Git Commit and Push
+  - Opens a small window listing changed files (`git status --porcelain`)
+  - Enter a commit message, then runs: `git add .`, `git commit -m "…"`, and `git push`
+  - Enabled only if there are uncommitted changes
 
-## Troubleshooting
-- “No repository selected.”
-  - Ensure you’ve selected a folder within a Git repository (a `.git` directory exists at or above the path)
-- “Git not found” or commands do nothing
-  - Verify Git is installed and on your PATH; try running `git --version` from your OS shell
-- “No Git token configured in EditorPrefs” or push fails with auth errors
-  - Set `EditorPrefs.SetString("GitToken", "<token>")`; ensure the remote is HTTPS and the token is valid
-- “SSH remote detected - use SSH keys instead of tokens”
-  - Switch remote to HTTPS for push or handle push outside of this tool
-- Pull leads to conflicts
-  - Resolve merge conflicts using your Git client; the tool doesn’t provide conflict resolution UI
+Selection logic: Select any folder (or asset) in the Project window; the tool resolves the on-disk path and runs Git commands there. Subfolders inside a repo work fine.
 
-## Files in this package
-- `Editor/GitFolderFetchPull.cs` – Adds the Fetch & Pull command and behind-check logic
-- `Editor/GitFolderCommitPushEditor.cs` – Small review window showing changed files and commit message input
-- `Editor/GitFolderCommitPush.cs` – Core commit/push helpers (stage/commit/push, change listing, basic changelog stub)
+## Authentication (HTTPS token)
+Push uses a Personal Access Token (PAT) stored in EditorPrefs under the key `GitToken`.
+
+Tips
+- GitHub scopes: `repo` is typically enough for private repos; public repos may require fewer scopes
+- Security: EditorPrefs is per-user; treat tokens like passwords and never commit them
+- SSH remotes: push via token is not supported for SSH remotes; use HTTPS or your Git client instead
+
+## How It Works
+- Fetch/Pull
+  - Runs `git fetch`, checks “behind” status via `git status --porcelain -b`, then runs `git pull` if needed
+- Commit/Push
+  - Lists changes via `git status --porcelain`
+  - Stages everything with `git add .`
+  - Commits with your message (empty allowed, but discouraged)
+  - Pushes to `origin` using an authenticated HTTPS URL with the token
+
+## Notes and Limitations
+- Staging: uses `git add .` to commit all current changes at the selected repo path
+- Partial commits: not supported via this UI; use your Git client for fine-grained staging
+- Remotes: push targets `origin` and current HEAD; multiple remotes/custom refs aren’t exposed
+- SSH remotes: push is HTTPS-only
+- Commit message: empty messages are allowed but discouraged
+
+## Files in This Package
+- `Editor/GitFolderFetchPull.cs` – Fetch & Pull command and behind-check logic
+- `Editor/GitFolderCommitPushEditor.cs` – Review window (changed files + commit message)
+- `Editor/GitFolderCommitPush.cs` – Commit/push helpers (stage/commit/push, change listing)
 - `Editor/GitFolderSynchronizer.cs` – Shared helpers (run git, token handling, selection path)
+
+## Tags
+unity, unity-editor, git, cli, fetch, pull, stage, commit, push, https, token, pat, editor-tool, workflow
