@@ -24,7 +24,7 @@ A tiny editor utility that adds convenient Assets menu actions to fetch/pull and
 - Simple review UI: lists changed files and lets you enter a commit message
 - Push via HTTPS token stored in EditorPrefs
 
-![screenshot](Documentation/{8B095D46-B66A-4B84-B980-08436A4E047E}.png)
+![screenshot](Documentation/{Screenshot}.png)
 
 ## Requirements
 - Unity: 6.0 (per `package.json`) or newer
