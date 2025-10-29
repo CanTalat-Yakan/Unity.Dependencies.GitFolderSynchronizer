@@ -16,7 +16,7 @@ All utilities are under the `UnityEssentials` namespace. This keeps your project
 using UnityEssentials;
 ```
 
-# Unity Essentials – Dependencies: Git Folder Synchronizer
+# Git Folder Synchronizer
 
 A tiny editor utility that adds convenient Assets menu actions to fetch/pull and commit/push a Git repository directly from the Unity Project window.
 
