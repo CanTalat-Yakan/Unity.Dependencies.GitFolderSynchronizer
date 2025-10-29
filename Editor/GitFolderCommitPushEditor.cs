@@ -12,6 +12,8 @@ namespace UnityEssentials
         public static Action Close;
 
         public static List<string> ChangedFiles = new();
+        
+        private static string _commitMessage = string.Empty;
 
         [MenuItem("Assets/Git Commit and Push", true)]
         public static bool ValidateGitFolderSynchronizer()
@@ -40,17 +42,11 @@ namespace UnityEssentials
 
         public static void Header()
         {
-            string path = GetSelectedPath();
-            string commitMessage = string.Empty;
-
             GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
-            commitMessage = EditorGUILayout.TextField(commitMessage, EditorStyles.toolbarTextField);
+            _commitMessage = EditorGUILayout.TextField(_commitMessage, EditorStyles.toolbarTextField);
 
-            GUI.enabled = ChangedFiles.Count > 0;
             if (GUILayout.Button("Fetch and Pull", EditorStyles.toolbarButton))
                 FetchPull();
-
-            GUI.enabled = true;
         }
 
         public static void Body()
@@ -67,27 +63,21 @@ namespace UnityEssentials
         public static void Footer()
         {
             string path = GetSelectedPath();
-            string commitMessage = string.Empty;
-            
-            if (!string.IsNullOrEmpty(path))
-            {
-                int assetsIndex = path.IndexOf("Assets", StringComparison.OrdinalIgnoreCase);
-                if (assetsIndex >= 0)
-                    path = path.Substring(assetsIndex);
-            }
-            
+
             GUILayout.Label($"Total Changes: {ChangedFiles.Count}", EditorStyles.miniBoldLabel);
-            
-            EditorGUILayout.HelpBox("Git Repository Path: \n" + path, MessageType.Info);
-            
+
+            int assetsIndex = path.IndexOf("Assets", StringComparison.OrdinalIgnoreCase);
+            EditorGUILayout.HelpBox("Git Repository Path: \n" + path.Substring(assetsIndex), MessageType.Info);
+
+            GUI.enabled = ChangedFiles.Count > 0;
             if (GUILayout.Button("Commit and Push"))
             {
-                Commit(path, commitMessage);
+                Commit(path, _commitMessage);
                 Push();
                 Fetch();
                 Close();
             }
-
+            GUI.enabled = true;
         }
     }
 }
