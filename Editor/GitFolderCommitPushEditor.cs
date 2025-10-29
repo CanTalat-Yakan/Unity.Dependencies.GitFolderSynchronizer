@@ -9,13 +9,13 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer
     {
-        // Instance-scoped editor state (aligned with GitHubRepositoryClonerEditor pattern)
         public EditorWindowDrawer Window;
         public Action Repaint;
         public Action Close;
 
         public string Token;
         public List<string> ChangedFiles = new();
+        public List<string> UnpushedCommits = new();
 
         private string _commitMessage = string.Empty;
         private string _tokenPlaceholder = string.Empty;
@@ -24,8 +24,9 @@ namespace UnityEssentials
         public static bool ValidateGitFolderSynchronizer()
         {
             string path = GetSelectedPath();
-            return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git"))
-                                               && HasUncommittedChanges(path);
+            return !string.IsNullOrEmpty(path)
+                   && Directory.Exists(Path.Combine(path, ".git"))
+                   && (HasUncommittedChanges(path) || HasUnpushedCommits(path));
         }
 
         [MenuItem("Assets/Git Commit and Push", priority = -100)]
@@ -36,10 +37,10 @@ namespace UnityEssentials
             {
                 var editor = new GitFolderSynchronizer();
                 editor.Token = EditorPrefs.GetString(TokenKey, "");
-                editor.ChangedFiles = GetChangedFiles(path);
+                editor.RefreshState(path);
 
                 editor.Window = EditorWindowDrawer
-                    .CreateInstance("Git Commit and Push Window", new(420, 300))
+                    .CreateInstance("Git Commit and Push Window", new(480, 340))
                     .SetHeader(editor.Header, EditorWindowStyle.Toolbar)
                     .SetBody(editor.Body, EditorWindowStyle.Margin)
                     .SetFooter(editor.Footer, EditorWindowStyle.HelpBox)
@@ -49,8 +50,16 @@ namespace UnityEssentials
             }
         }
 
+        private void RefreshState(string path)
+        {
+            ChangedFiles = GetChangedFiles(path);
+            UnpushedCommits = GetUnpushedCommitSummaries(path);
+        }
+
         public void Header()
         {
+            string path = GetSelectedPath();
+
             // If no token, prompt for token entry like GitHubRepositoryClonerEditor
             if (string.IsNullOrEmpty(Token))
             {
@@ -66,12 +75,43 @@ namespace UnityEssentials
                 return;
             }
 
-            // Token exists: normal toolbar
-            GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
-            _commitMessage = EditorGUILayout.TextField(_commitMessage, EditorStyles.toolbarTextField);
+            bool hasUncommitted = ChangedFiles != null && ChangedFiles.Count > 0;
+            bool hasUnpushedOnly = !hasUncommitted && (UnpushedCommits?.Count ?? 0) > 0;
+
+            // Token exists: context-aware toolbar
+            if (hasUncommitted)
+            {
+                GUILayout.Label("Commit Message:", EditorStyles.label, GUILayout.Width(110));
+                _commitMessage = EditorGUILayout.TextField(_commitMessage, EditorStyles.toolbarTextField);
+            }
+            else if (hasUnpushedOnly)
+            {
+                GUILayout.Label($"Ahead by {(UnpushedCommits?.Count ?? 0)} commit(s)", EditorStyles.boldLabel);
+            }
+            else
+            {
+                GUILayout.Label("Working tree clean", EditorStyles.miniBoldLabel);
+            }
 
             if (GUILayout.Button("Fetch and Pull", EditorStyles.toolbarButton))
+            {
                 FetchPull();
+                RefreshState(path);
+                Repaint?.Invoke();
+            }
+
+            if (hasUnpushedOnly)
+            {
+                if (GUILayout.Button("Push", EditorStyles.toolbarButton))
+                {
+                    Push();
+                    RefreshState(path);
+                    if ((UnpushedCommits?.Count ?? 0) == 0 && ChangedFiles.Count == 0)
+                        Close?.Invoke();
+                    else
+                        Repaint?.Invoke();
+                }
+            }
 
             if (GUILayout.Button("Change Token", EditorStyles.toolbarButton))
             {
@@ -100,16 +140,26 @@ namespace UnityEssentials
                 return;
             }
 
-            GUILayout.Label("Changed Files:", EditorStyles.boldLabel);
+            bool hasUncommitted = ChangedFiles != null && ChangedFiles.Count > 0;
+            bool hasUnpushedOnly = !hasUncommitted && (UnpushedCommits?.Count ?? 0) > 0;
 
-            if (ChangedFiles.Count == 0)
+            if (hasUncommitted)
             {
-                EditorGUILayout.LabelField("No uncommitted changes detected.");
-                return;
-            }
+                GUILayout.Label("Changed Files:", EditorStyles.boldLabel);
 
-            foreach (string file in ChangedFiles)
-                EditorGUILayout.LabelField(file);
+                foreach (string file in ChangedFiles)
+                    EditorGUILayout.LabelField(file);
+            }
+            else if (hasUnpushedOnly)
+            {
+                GUILayout.Label("Unpushed Commits:", EditorStyles.boldLabel);
+                foreach (string line in UnpushedCommits)
+                    EditorGUILayout.LabelField(line);
+            }
+            else
+            {
+                EditorGUILayout.LabelField("No uncommitted changes and nothing to push.");
+            }
         }
 
         public void Footer()
@@ -122,7 +172,13 @@ namespace UnityEssentials
             if (string.IsNullOrEmpty(path))
                 return;
 
-            GUILayout.Label($"Total Changes: {ChangedFiles.Count}", EditorStyles.miniBoldLabel);
+            bool hasUncommitted = ChangedFiles != null && ChangedFiles.Count > 0;
+            bool hasUnpushedOnly = !hasUncommitted && (UnpushedCommits?.Count ?? 0) > 0;
+
+            if (hasUncommitted)
+                GUILayout.Label($"Total Changes: {ChangedFiles.Count}", EditorStyles.miniBoldLabel);
+            else if (hasUnpushedOnly)
+                GUILayout.Label($"Ahead by {(UnpushedCommits?.Count ?? 0)} commit(s)", EditorStyles.miniBoldLabel);
 
             int assetsIndex = path.IndexOf("Assets", StringComparison.OrdinalIgnoreCase);
             if (assetsIndex >= 0)
@@ -130,15 +186,35 @@ namespace UnityEssentials
             else
                 EditorGUILayout.HelpBox("Git Repository Path: \n" + path, MessageType.Info);
 
-            GUI.enabled = ChangedFiles.Count > 0;
-            if (GUILayout.Button("Commit and Push"))
+            if (hasUncommitted)
             {
-                Commit(path, _commitMessage);
-                Push();
-                Fetch();
-                Close?.Invoke();
+                GUI.enabled = ChangedFiles.Count > 0;
+                if (GUILayout.Button("Commit and Push"))
+                {
+                    Commit(path, _commitMessage);
+                    Push();
+                    Fetch(); // update remote tracking info
+
+                    RefreshState(path);
+                    if ((UnpushedCommits?.Count ?? 0) == 0 && ChangedFiles.Count == 0)
+                        Close?.Invoke();
+                    else
+                        Repaint?.Invoke();
+                }
+                GUI.enabled = true;
             }
-            GUI.enabled = true;
+            else if (hasUnpushedOnly)
+            {
+                if (GUILayout.Button($"Push {(UnpushedCommits?.Count ?? 0)} Commit(s)"))
+                {
+                    Push();
+                    RefreshState(path);
+                    if ((UnpushedCommits?.Count ?? 0) == 0)
+                        Close?.Invoke();
+                    else
+                        Repaint?.Invoke();
+                }
+            }
         }
     }
 }

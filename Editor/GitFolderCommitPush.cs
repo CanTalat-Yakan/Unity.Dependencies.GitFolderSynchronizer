@@ -2,13 +2,62 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using UnityEngine;
 
 namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer
     {
+        private static bool HasUnpushedCommits(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(Path.Combine(path, ".git")))
+                return false;
+
+            // Use status -b to detect [ahead N]
+            var (output, _, exitCode) = RunGitCommand(path, "status --porcelain -b");
+            if (exitCode != 0 || string.IsNullOrEmpty(output))
+                return false;
+
+            string firstLine = output.Split('\n')[0];
+            return firstLine.Contains("[ahead");
+        }
+
+        private static List<string> GetUnpushedCommitSummaries(string path)
+        {
+            List<string> commits = new();
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(Path.Combine(path, ".git")))
+                return commits;
+
+            // Determine upstream tracking branch if any
+            var (upstreamOut, _, upstreamCode) = RunGitCommand(path, "rev-parse --abbrev-ref --symbolic-full-name @{u}");
+            string upstreamRef = null;
+            if (upstreamCode == 0 && !string.IsNullOrWhiteSpace(upstreamOut))
+                upstreamRef = upstreamOut.Trim();
+
+            // Fallback to origin/<branch>
+            if (string.IsNullOrEmpty(upstreamRef))
+            {
+                var (branchOut, _, branchCode) = RunGitCommand(path, "rev-parse --abbrev-ref HEAD");
+                if (branchCode != 0 || string.IsNullOrWhiteSpace(branchOut))
+                    return commits;
+                string branch = branchOut.Trim();
+                upstreamRef = $"origin/{branch}";
+            }
+
+            var (logOut, _, logCode) = RunGitCommand(path, $"log --oneline {upstreamRef}..HEAD");
+            if (logCode != 0 || string.IsNullOrWhiteSpace(logOut))
+                return commits;
+
+            using StringReader reader = new(logOut);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                commits.Add(line.Trim());
+            }
+
+            return commits;
+        }
+
         private static void Commit(string path, string commitMessage)
         {
             const string EmptyCommitMessage = "⠀⠀⠀⠀⠀";
@@ -43,14 +92,14 @@ namespace UnityEssentials
 
         private static bool HasUncommittedChanges(string path)
         {
-            var (output, error, exitCode) = RunGitCommand(path, "status --porcelain");
+            var (output, _, _) = RunGitCommand(path, "status --porcelain");
             return !string.IsNullOrWhiteSpace(output);
         }
 
         private static List<string> GetChangedFiles(string path)
         {
             List<string> files = new();
-            var (output, error, exitCode) = RunGitCommand(path, "status --porcelain");
+            var (output, _, _) = RunGitCommand(path, "status --porcelain");
             using (StringReader reader = new(output))
             {
                 string line;
