@@ -1,7 +1,25 @@
 # Unity Essentials
 
-**Unity Essentials** is a lightweight, modular utility namespace designed to streamline development in Unity. 
+**Unity Essentials** is a lightweight, modular utility namespace designed to streamline development in Unity.
 It provides a collection of foundational tools, extensions, and helpers to enhance productivity and maintain clean code architecture.
+
+## Installation
+
+Install the Unity Essentials entry package via Unity's Package Manager, then install all modules from the Tools menu:
+
+1) Add the entry package (via Git URL)
+- Open: Window → Package Manager
+- Click the + button → "Add package from git URL…"
+- Paste this URL and click Add:
+
+```
+https://github.com/CanTalat-Yakan/UnityEssentials.git
+```
+
+2) Install or update all Unity Essentials packages
+- In Unity, go to: Tools → Install & Update UnityEssentials
+- Use the installer to install all packages (or select only the ones you need)
+- Re-run the same menu at any time to update packages to the latest versions
 
 ## 📦 This Package
 
