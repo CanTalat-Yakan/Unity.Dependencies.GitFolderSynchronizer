@@ -60,7 +60,7 @@ namespace UnityEssentials
         {
             string path = GetSelectedPath();
 
-            // If no token, prompt for token entry like GitHubRepositoryClonerEditor
+            // If no token, prompt for token entry
             if (string.IsNullOrEmpty(Token))
             {
                 GUILayout.Label("Enter your Git Token:");
@@ -169,7 +169,7 @@ namespace UnityEssentials
 
         public void Body()
         {
-            // If no token, show guidance (mirrors GitHubRepositoryClonerEditor behavior)
+            // If no token, show guidance
             if (string.IsNullOrEmpty(Token))
             {
                 EditorGUILayout.HelpBox(
@@ -245,7 +245,7 @@ namespace UnityEssentials
                         report("Staging changes...", 0.2f);
                         RunGitCommand(path, "add .");
 
-                        // Commit with empty-message placeholder if needed (keep original behavior)
+                        // Commit with empty-message placeholder if needed
                         const string EmptyCommitMessage = "⠀⠀⠀⠀⠀";
                         bool emptyCommitMessage = string.IsNullOrEmpty(message);
                         string effectiveMessage = emptyCommitMessage ? EmptyCommitMessage : message;
