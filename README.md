@@ -26,7 +26,7 @@ Install the Unity Essentials entry package via Unity's Package Manager, then ins
 
 # Git Folder Synchronizer
 
-> Quick overview: Git CLI commands for the selected folder: fetch, pull, stage, commit and push using a stored HTTPS personal access token.
+> Quick overview: Git CLI commands to fetch, pull, stage, commit, and push changes in the selected folder using a stored HTTPS personal access token.
 
 A tiny editor utility that adds convenient Assets menu actions to fetch/pull and commit/push a Git repository directly from the Unity Project window.
 
