@@ -28,69 +28,84 @@ Install the Unity Essentials entry package via Unity's Package Manager, then ins
 
 > Quick overview: Git CLI commands to fetch, pull, stage, commit, and push changes in the selected folder using a stored HTTPS personal access token.
 
-A tiny editor utility that adds convenient Assets menu actions to fetch/pull and commit/push a Git repository directly from the Unity Project window.
+A tiny editor tool that adds two context‑aware menu actions to the Assets menu. It resolves the on‑disk path for your current selection, runs common Git operations there, and shows a lightweight review window before committing. It’s great for quick syncs without leaving Unity, while still relying on your system Git.
 
 ![screenshot](Documentation/Screenshot.png)
 
 ## Features
-- Context-aware: works on the currently selected folder inside a Git repository
-- Simple review UI: lists changed files and lets you enter a commit message
-- Push via HTTPS using a token stored in EditorPrefs
+- Context‑aware repository detection
+  - Works on the selected folder (or asset) by resolving its filesystem path and walking up to find a `.git` folder
+- Fetch & Pull (safe sync)
+  - Runs `git fetch`, checks if the local branch is behind, and only then performs `git pull`
+- Commit & Push (review first)
+  - Opens a small review window: shows `git status --porcelain` changes, lets you enter a commit message, then stages/commits/pushes
+  - Uses HTTPS and an EditorPrefs‑stored token for authentication
+- Simple, opinionated flow
+  - Stages all changes under the repo (`git add .`), commits to current HEAD, pushes to `origin`
+- LFS‑friendly
+  - Works with Git LFS if it’s installed and configured for the repo
+- Editor‑only
+  - No runtime code; pure workflow helper inside the Unity Editor
 
 ## Requirements
-- Unity Editor 6000.0+ (Editor-only; no runtime code)
-- Git installed and available on your PATH
-- Personal Access Token (PAT) for HTTPS operations (stored in EditorPrefs as `GitToken`)
-- Optional: Git LFS if repositories use LFS
+- Unity Editor 6000.0+ (Editor‑only)
+- Git installed and available on PATH
+- HTTPS Personal Access Token (PAT) saved in EditorPrefs under the key `GitToken`
+- Optional: Git LFS installed for repos using LFS
 
-Tip: If the tool can’t find Git/LFS, install them and restart Unity so PATH updates are picked up.
+Tip: After installing Git/LFS, restart Unity so your updated PATH is picked up by the Editor process.
 
 ## Usage
-1) Ensure Git is installed and reachable from your shell/terminal
-2) In the Project window, select a folder inside the repo you want to operate on
-3) For pulling remote changes: Assets → Git Fetch and Pull (pulls only if behind)
-4) For committing/pushing: Assets → Git Commit and Push → review changes → enter a message → Commit and Push
+- Ensure Git is installed and reachable from your shell/terminal
+- In the Project window, select a folder inside the repo you want to operate on
+- For pulling remote changes: Assets → Git Fetch and Pull (pulls only if behind)
+- For committing/pushing: Assets → Git Commit and Push → review changes → enter a message → Commit and Push
 
-## Menu Commands
+### Menu Commands
 - Assets → Git Fetch and Pull
-  - Runs `git fetch` then `git pull` in the selected folder’s repository
-  - Enabled when the selection is inside a Git repo (a `.git` folder exists)
+  - Runs `git fetch` then performs a `git pull` only when the branch is behind
+  - Enabled when the selection resolves to a path inside a Git repository
+
 - Assets → Git Commit and Push
-  - Opens a small window listing changed files (`git status --porcelain`)
-  - Enter a commit message, then runs: `git add .`, `git commit -m "…"`, and `git push`
-  - Enabled only if there are uncommitted changes
+  - Shows changed files (`git status --porcelain`) and a commit message field
+  - On confirm: `git add .` → `git commit -m "…"` → `git push`
+  - Enabled only when there are changes to commit
 
-Selection logic: Select any folder (or asset) in the Project window; the tool resolves the on-disk path and runs Git commands there. Subfolders inside a repo work fine.
+Selection logic: The tool resolves the selected Project asset to an OS path and finds the nearest `.git` root above it. All commands run at that repo root, so nested subfolders work fine.
 
-## Authentication (HTTPS token)
+### Authentication (HTTPS token)
 Push uses a Personal Access Token (PAT) stored in EditorPrefs under the key `GitToken`.
 
 Tips
-- GitHub scopes: `repo` is typically enough for private repos; public repos may require fewer scopes
-- Security: EditorPrefs is per-user; treat tokens like passwords and never commit them
-- SSH remotes: push via token is not supported for SSH remotes; use HTTPS or your Git client instead
+- GitHub scopes: `repo` usually suffices for private repos; public repos may require fewer scopes
+- Security: EditorPrefs is per‑user; treat tokens like passwords and never commit them
+- SSH remotes: token‑based push supports HTTPS remotes; SSH remotes aren’t supported by this tool
 
 ## How It Works
 - Fetch/Pull
-  - Runs `git fetch`, checks “behind” status via `git status --porcelain -b`, then runs `git pull` if needed
+  - `git fetch` → parse `git status --porcelain -b` → `git pull` only if behind
 - Commit/Push
-  - Lists changes via `git status --porcelain`
-  - Stages everything with `git add .`
-  - Commits with your message (empty allowed, but discouraged)
-  - Pushes to `origin` using an authenticated HTTPS URL with the token
+  - List changes with `git status --porcelain`
+  - Stage all changes via `git add .`
+  - Commit with the user‑entered message (empty allowed, discouraged)
+  - Push current HEAD to `origin` using HTTPS with the stored token
 
 ## Notes and Limitations
-- Staging: uses `git add .` to commit all current changes at the selected repo path
-- Partial commits: not supported via this UI; use your Git client for fine-grained staging
-- Remotes: push targets `origin` and current HEAD; multiple remotes/custom refs aren’t exposed
-- SSH remotes: push is HTTPS-only
-- Commit message: empty messages are allowed but discouraged
+- Staging model
+  - Uses `git add .` (no partial staging UI). For granular staging, use your Git client
+- Remote/branch
+  - Push targets `origin` and the current branch; custom remotes/refs aren’t exposed
+- HTTPS only
+  - SSH remotes aren’t supported for push in this workflow
+- Commit message
+  - Empty messages are permitted but discouraged
 
 ## Files in This Package
-- `Editor/GitFolderFetchPull.cs` – Fetch & Pull command and behind-check logic
-- `Editor/GitFolderCommitPushEditor.cs` – Review window (changed files + commit message)
-- `Editor/GitFolderCommitPush.cs` – Commit/push helpers (stage/commit/push, change listing)
-- `Editor/GitFolderSynchronizer.cs` – Shared helpers (run git, token handling, selection path)
+- `Editor/GitFolderFetchPull.cs` – Fetch & Pull command + behind‑check
+- `Editor/GitFolderCommitPushEditor.cs` – Review window (changes list + commit message)
+- `Editor/GitFolderCommitPush.cs` – Stage/commit/push helpers and change listing
+- `Editor/GitFolderSynchronizer.cs` – Shared helpers (git invocation, token, selection path)
+- `Editor/UnityEssentials.GitFolderSynchronizer.Editor.asmdef`
 
 ## Tags
 unity, unity-editor, git, cli, fetch, pull, stage, commit, push, https, token, pat, editor-tool, workflow
