@@ -40,6 +40,10 @@ A tiny editor tool that adds two context‑aware menu actions to the Assets menu
 - Commit & Push (review first)
   - Opens a small review window: shows `git status --porcelain` changes, lets you enter a commit message, then stages/commits/pushes
   - Uses HTTPS and an EditorPrefs‑stored token for authentication
+- Global Commit & Push (batch mode)
+  - Scans all Git repositories under `Assets/` and also includes the project root repository
+  - Commits with an empty message (invisible characters) and pushes each repo using the saved token
+  - Shows a progress bar and prints a per‑repository summary at the end
 - Simple, opinionated flow
   - Stages all changes under the repo (`git add .`), commits to current HEAD, pushes to `origin`
 - LFS‑friendly
@@ -60,6 +64,8 @@ Tip: After installing Git/LFS, restart Unity so your updated PATH is picked up b
 - In the Project window, select a folder inside the repo you want to operate on
 - For pulling remote changes: Assets → Git Fetch and Pull (pulls only if behind)
 - For committing/pushing: Assets → Git Commit and Push → review changes → enter a message → Commit and Push
+- For batch syncing everything: Tools → Git Commit & Push All Changes
+  - First‑time setup: open Assets → Git Commit and Push once to save your token, then run the Tools command
 
 ### Menu Commands
 - Assets → Git Fetch and Pull
@@ -71,6 +77,11 @@ Tip: After installing Git/LFS, restart Unity so your updated PATH is picked up b
   - On confirm: `git add .` → `git commit -m "…"` → `git push`
   - Enabled only when there are changes to commit
 
+- Tools → Git Commit & Push All Changes
+  - Recursively finds all Git repositories under `Assets/` and includes the Unity project root repository
+  - For each repo: stage/commit (empty message) and push using the saved token
+  - Displays a progress bar with current operation and a final per‑repository summary in the Console
+
 Selection logic: The tool resolves the selected Project asset to an OS path and finds the nearest `.git` root above it. All commands run at that repo root, so nested subfolders work fine.
 
 ### Authentication (HTTPS token)
@@ -81,6 +92,19 @@ Tips
 - Security: EditorPrefs is per‑user; treat tokens like passwords and never commit them
 - SSH remotes: token‑based push supports HTTPS remotes; SSH remotes aren’t supported by this tool
 
+## Global Sync: Progress & Reporting
+- Shows a progress bar while processing all repositories (submodules first, project root last)
+- End of run prints a summary like:
+  - `Processed: <n>, Repositories Found: <m>, Committed: <k>, Pushed: <p>`
+  - Followed by a "Per‑Repository Summary:" section
+- Per‑repository lines appear as:
+  - `- [Committed and Pushed] <RepoName>`
+  - `- [Pushed] <RepoName>`
+  - `- [No Changes] <RepoName>`
+  - `- [Commit Failed] <RepoName>: <reason>`
+  - `- [Push Failed] <RepoName>: <reason>`
+- Log messages print only the repository’s top‑level folder name (e.g., `Unity.Dependencies.GitFolderSynchronizer`), not the full filesystem path
+
 ## How It Works
 - Fetch/Pull
   - `git fetch` → parse `git status --porcelain -b` → `git pull` only if behind
@@ -89,6 +113,9 @@ Tips
   - Stage all changes via `git add .`
   - Commit with the user‑entered message (empty allowed, discouraged)
   - Push current HEAD to `origin` using HTTPS with the stored token
+- Global Commit & Push
+  - Finds all repositories under `Assets/` and the project root repo, then repeats the commit/push flow for each
+  - Uses the same helpers as the review window, ensuring consistent behavior
 
 ## Notes and Limitations
 - Staging model
@@ -104,6 +131,7 @@ Tips
 - `Editor/GitFolderFetchPull.cs` – Fetch & Pull command + behind‑check
 - `Editor/GitFolderCommitPushEditor.cs` – Review window (changes list + commit message)
 - `Editor/GitFolderCommitPush.cs` – Stage/commit/push helpers and change listing
+- `Editor/GitFolderCommitPushGlobal.cs` – Global Tools menu command to commit & push all repos
 - `Editor/GitFolderSynchronizer.cs` – Shared helpers (git invocation, token, selection path)
 - `Editor/UnityEssentials.GitFolderSynchronizer.Editor.asmdef`
 
