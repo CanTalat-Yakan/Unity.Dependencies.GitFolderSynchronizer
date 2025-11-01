@@ -18,7 +18,7 @@ namespace UnityEssentials
             string assetsPath = Application.dataPath; // absolute path to Assets/
 
             // Gather all git repositories under Assets/ recursively (skip descending into a repo once found)
-            List<string> repoRoots = new List<string>();
+            List<string> repositoryRoots = new List<string>();
             try
             {
                 var stack = new Stack<string>();
@@ -33,7 +33,7 @@ namespace UnityEssentials
 
                     if (IsGitRepositoryRoot(dir))
                     {
-                        repoRoots.Add(dir);
+                        repositoryRoots.Add(dir);
                         // Do not descend into this repo to avoid nested traversal; submodules are separate repos and will be picked if scanning starts from their root
                         continue;
                     }
@@ -62,30 +62,30 @@ namespace UnityEssentials
             }
 
             // Also include the ancestor repo that contains the Assets/ folder (the Unity project root repo)
-            string ancestorRepo = FindAncestorGitRepoRoot(assetsPath);
-            if (!string.IsNullOrEmpty(ancestorRepo))
+            string ancestorRepository = FindAncestorGitRepoRoot(assetsPath);
+            if (!string.IsNullOrEmpty(ancestorRepository))
             {
                 // Only add if it's not already one of the repos we found beneath Assets/
-                bool alreadyIncluded = repoRoots.Exists(r => string.Equals(Path.GetFullPath(r), Path.GetFullPath(ancestorRepo), StringComparison.OrdinalIgnoreCase));
+                bool alreadyIncluded = repositoryRoots.Exists(r => string.Equals(Path.GetFullPath(r), Path.GetFullPath(ancestorRepository), StringComparison.OrdinalIgnoreCase));
                 if (!alreadyIncluded)
                 {
                     // Process sub-repositories first, then the root repo last, so submodule pointer updates can be captured.
-                    repoRoots.Add(ancestorRepo);
+                    repositoryRoots.Add(ancestorRepository);
                 }
             }
 
-            if (repoRoots.Count == 0)
+            if (repositoryRoots.Count == 0)
             {
                 EditorUtility.DisplayDialog(MenuTitle, "No git repositories found under Assets/.", "OK");
                 return;
             }
 
-            // Token is required to mirror the working Editor window push behavior
+            // Token is required
             string token = EditorPrefs.GetString(TokenKey, string.Empty);
             if (string.IsNullOrEmpty(token))
             {
-                bool cont = EditorUtility.DisplayDialog(MenuTitle, "No Git token found. Please open 'Assets/Git Commit and Push' once to set your token, then retry.", "OK", "Cancel");
-                if (!cont) return;
+                bool shouldContinue = EditorUtility.DisplayDialog(MenuTitle, "No Git token found. Please open 'Assets/Git Commit and Push' once to set your token, then retry.", "OK", "Cancel");
+                if (!shouldContinue) return;
             }
 
             // Run work in background with progress bar on main thread
@@ -96,10 +96,10 @@ namespace UnityEssentials
 
             StartProgress(MenuTitle, report =>
             {
-                int total = repoRoots.Count;
+                int total = repositoryRoots.Count;
                 for (int i = 0; i < total; i++)
                 {
-                    string dir = repoRoots[i];
+                    string dir = repositoryRoots[i];
                     string folderName = Path.GetFileName(dir);
                     if (string.IsNullOrEmpty(folderName)) folderName = dir;
 
@@ -108,7 +108,7 @@ namespace UnityEssentials
 
                     float Base(int step, int steps) => Math.Clamp((i + (step / (float)steps)) / Math.Max(1, total), 0f, 1f);
 
-                    // Evaluate repo state using same helpers as the editor window
+                    // Evaluate repo state
                     report($"{folderName}: checking status…", Base(1, 6));
                     bool hasUncommitted = HasUncommittedChanges(dir);
                     bool hasAheadOnly = !hasUncommitted && HasUnpushedCommits(dir);
@@ -119,7 +119,7 @@ namespace UnityEssentials
                         continue;
                     }
 
-                    // If uncommitted, commit with invisible characters (same as editor UI)
+                    // If uncommitted, commit with invisible characters
                     if (hasUncommitted)
                     {
                         report($"{folderName}: staging & committing (empty message)…", Base(3, 6));
@@ -139,11 +139,11 @@ namespace UnityEssentials
 
                     // Push using the same method the editor window uses (token auth), regardless of upstream
                     report($"{folderName}: pushing to remote…", Base(5, 6));
-                    var pushRes = RunPushGitCommand(dir, token);
-                    if (pushRes.exitCode != 0)
+                    var pushResult = RunPushGitCommand(dir, token);
+                    if (pushResult.exitCode != 0)
                     {
-                        sbReport.AppendLine($"- [Push Failed] {folderName}: {TrimToSingleLine(pushRes.error)}");
-                        Debug.LogError($"[Git Sync] {folderName}: push failed\nSTDERR: {pushRes.error}\nSTDOUT: {pushRes.output}");
+                        sbReport.AppendLine($"- [Push Failed] {folderName}: {TrimToSingleLine(pushResult.error)}");
+                        Debug.LogError($"[Git Sync] {folderName}: push failed\nSTDERR: {pushResult.error}\nSTDOUT: {pushResult.output}");
                         continue;
                     }
 
@@ -156,15 +156,15 @@ namespace UnityEssentials
             },
             onComplete: () =>
             {
-                string summary = $"Processed: {processed}, Repositories Found: {repoRoots.Count}, Committed: {committed}, Pushed: {pushed}";
+                string summary = $"Processed: {processed}, Repositories Found: {repositoryRoots.Count}, Committed: {committed}, Pushed: {pushed}";
                 Debug.Log($"[Git Sync] {summary}\n{ReportSectionTitle}\n{sbReport}");
             });
         }
 
         private static bool IsGitRepositoryRoot(string directory)
         {
-            string gitDir = Path.Combine(directory, ".git");
-            return Directory.Exists(gitDir) || File.Exists(gitDir);
+            string gitDirectory = Path.Combine(directory, ".git");
+            return Directory.Exists(gitDirectory) || File.Exists(gitDirectory);
         }
 
         private static string FindAncestorGitRepoRoot(string startDir)
@@ -172,14 +172,14 @@ namespace UnityEssentials
             try
             {
                 var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                string dir = Path.GetFullPath(startDir);
-                while (!string.IsNullOrEmpty(dir) && !seen.Contains(dir))
+                string directory = Path.GetFullPath(startDir);
+                while (!string.IsNullOrEmpty(directory) && !seen.Contains(directory))
                 {
-                    if (IsGitRepositoryRoot(dir)) return dir;
-                    seen.Add(dir);
-                    var parent = Directory.GetParent(dir);
+                    if (IsGitRepositoryRoot(directory)) return directory;
+                    seen.Add(directory);
+                    var parent = Directory.GetParent(directory);
                     if (parent == null) break;
-                    dir = parent.FullName;
+                    directory = parent.FullName;
                 }
             }
             catch (Exception e)
@@ -193,8 +193,8 @@ namespace UnityEssentials
         {
             if (string.IsNullOrEmpty(value)) return string.Empty;
             value = value.Replace("\r", "");
-            var idx = value.IndexOf('\n');
-            return idx >= 0 ? value.Substring(0, idx) : value;
+            var index = value.IndexOf('\n');
+            return index >= 0 ? value.Substring(0, index) : value;
         }
     }
 }
