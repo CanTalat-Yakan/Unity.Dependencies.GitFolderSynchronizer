@@ -156,7 +156,7 @@ namespace UnityEssentials
             onComplete: () =>
             {
                 string summary = $"Processed: {processed}, Repositories Found: {repoRoots.Count}, Committed: {committed}, Pushed: {pushed}";
-                Debug.Log($"[Git Sync] {summary} \n\n {sbReport}");
+                Debug.Log($"[Git Sync] {summary}\n\n{sbReport}");
             });
         }
 
