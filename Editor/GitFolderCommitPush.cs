@@ -71,11 +71,13 @@ namespace UnityEssentials
             if (emptyCommitMessage)
                 commitOutput = commitOutput.Remove(15, 15);
 
+            string folderName = Path.GetFileName(path);
+
             if (!string.IsNullOrEmpty(commitOutput))
-                Debug.Log($"[Git] {commitOutput} {path}\n");
+                Debug.Log($"[Git] {commitOutput}  {folderName}\n");
 
             if (!string.IsNullOrEmpty(commitError))
-                Debug.LogError($"[Git] {commitError} {path}\n");
+                Debug.LogError($"[Git] {commitError}  {folderName}\n");
         }
 
         private static void Push(string token)
