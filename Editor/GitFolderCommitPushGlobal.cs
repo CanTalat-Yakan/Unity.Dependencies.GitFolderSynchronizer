@@ -10,6 +10,7 @@ namespace UnityEssentials
     public partial class GitFolderSynchronizer
     {
         private const string MenuTitle = "Git Commit & Push All Changes";
+        private const string ReportSectionTitle = "Per-Repository Summary:";
 
         [MenuItem("Tools/" + MenuTitle, priority = -9000)]
         public static void CommitAndPushAllChanges()
@@ -146,17 +147,17 @@ namespace UnityEssentials
                         continue;
                     }
 
-                    // Optionally refresh tracking info like the editor window
                     RunGitCommand(dir, "fetch");
 
                     pushed++;
-                    sbReport.AppendLine($"- [{(hasUncommitted ? "Commited and" : string.Empty)} Pushed] {folderName}");
+                    var label = hasUncommitted ? "Committed and Pushed" : "Pushed";
+                    sbReport.AppendLine($"- [{label}] {folderName}");
                 }
             },
             onComplete: () =>
             {
                 string summary = $"Processed: {processed}, Repositories Found: {repoRoots.Count}, Committed: {committed}, Pushed: {pushed}";
-                Debug.Log($"[Git Sync] {summary}Full Git Synchronization Report:\n{sbReport}");
+                Debug.Log($"[Git Sync] {summary}\n{ReportSectionTitle}\n{sbReport}");
             });
         }
 
