@@ -11,7 +11,7 @@ namespace UnityEssentials
     {
         private const string MenuTitle = "Git Commit & Push All Changes";
 
-        [MenuItem("Tools/" + MenuTitle, priority = 2000)]
+        [MenuItem("Tools/" + MenuTitle, priority = -9000)]
         public static void CommitAndPushAllChanges()
         {
             string assetsPath = Application.dataPath; // absolute path to Assets/
@@ -150,7 +150,7 @@ namespace UnityEssentials
                     RunGitCommand(dir, "fetch");
 
                     pushed++;
-                    sbReport.AppendLine($"- [{(hasUncommitted ? "Commited & " : string.Empty)} Pushed] {folderName}");
+                    sbReport.AppendLine($"- [{(hasUncommitted ? "Commited and" : string.Empty)} Pushed] {folderName}");
                 }
             },
             onComplete: () =>

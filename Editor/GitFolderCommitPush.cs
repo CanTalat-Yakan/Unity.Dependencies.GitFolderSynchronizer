@@ -74,10 +74,10 @@ namespace UnityEssentials
             string folderName = Path.GetDirectoryName(path);
             
             if (!string.IsNullOrEmpty(commitOutput))
-                Debug.Log($"[Git] {folderName} \n {commitOutput}");
+                Debug.Log($"[Git] {commitOutput} \n {folderName}");
 
             if (!string.IsNullOrEmpty(commitError))
-                Debug.LogError($"[Git] {folderName} \n {commitError}");
+                Debug.LogError($"[Git] {commitError} \n {folderName}");
         }
 
         private static void Push(string token)
