@@ -114,7 +114,7 @@ namespace UnityEssentials
 
                     if (!hasUncommitted && !hasAheadOnly)
                     {
-                        sbReport.AppendLine($"- {folderName}: clean, nothing to do.");
+                        sbReport.AppendLine($"- [No Changes] {folderName}");
                         continue;
                     }
 
@@ -130,7 +130,7 @@ namespace UnityEssentials
                         }
                         catch (Exception ex)
                         {
-                            sbReport.AppendLine($"- {folderName}: commit failed: {TrimToSingleLine(ex.Message)}");
+                            sbReport.AppendLine($"- [Commit Failed] {folderName}: {TrimToSingleLine(ex.Message)}");
                             Debug.LogError($"[Git Sync] {folderName}: commit failed: {ex}");
                             continue;
                         }
@@ -141,7 +141,7 @@ namespace UnityEssentials
                     var pushRes = RunPushGitCommand(dir, token);
                     if (pushRes.exitCode != 0)
                     {
-                        sbReport.AppendLine($"- {folderName}: push failed: {TrimToSingleLine(pushRes.error)}");
+                        sbReport.AppendLine($"- [Push Failed] {folderName}: {TrimToSingleLine(pushRes.error)}");
                         Debug.LogError($"[Git Sync] {folderName}: push failed\nSTDERR: {pushRes.error}\nSTDOUT: {pushRes.output}");
                         continue;
                     }
@@ -150,7 +150,7 @@ namespace UnityEssentials
                     RunGitCommand(dir, "fetch");
 
                     pushed++;
-                    sbReport.AppendLine($"- {folderName}: {(hasUncommitted ? "committed and " : string.Empty)}pushed.");
+                    sbReport.AppendLine($"- [{(hasUncommitted ? "Commited & " : string.Empty)} Pushed] {folderName}");
                 }
             },
             onComplete: () =>
