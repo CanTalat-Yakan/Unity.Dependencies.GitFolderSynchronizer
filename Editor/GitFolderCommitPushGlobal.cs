@@ -157,7 +157,6 @@ namespace UnityEssentials
             {
                 string summary = $"Processed: {processed}, Repositories Found: {repoRoots.Count}, Committed: {committed}, Pushed: {pushed}";
                 Debug.Log($"[Git Sync] {summary}\n{sbReport}");
-                EditorUtility.DisplayDialog(MenuTitle, summary, "OK");
             });
         }
 
