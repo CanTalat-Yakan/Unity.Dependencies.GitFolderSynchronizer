@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.IO;
 using System.Text;
@@ -189,7 +190,7 @@ namespace UnityEssentials
             return null;
         }
 
-        private static string TrimToSingleLine(string? value)
+        private static string TrimToSingleLine(string value)
         {
             if (string.IsNullOrEmpty(value)) return string.Empty;
             value = value.Replace("\r", "");
@@ -198,3 +199,4 @@ namespace UnityEssentials
         }
     }
 }
+#endif
