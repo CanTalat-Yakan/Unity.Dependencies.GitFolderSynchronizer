@@ -9,7 +9,7 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer
     {
-        public EditorWindowDrawer Window;
+        public EditorWindowBuilder Window;
         public Action Repaint;
         public Action Close;
 
@@ -39,7 +39,7 @@ namespace UnityEssentials
                 editor.Token = EditorPrefs.GetString(TokenKey, "");
                 editor.RefreshState(path);
 
-                editor.Window = EditorWindowDrawer
+                editor.Window = EditorWindowBuilder
                     .CreateInstance("Git Commit and Push Window", new(480, 340))
                     .SetHeader(editor.Header, EditorWindowStyle.Toolbar)
                     .SetBody(editor.Body, EditorWindowStyle.Margin)
