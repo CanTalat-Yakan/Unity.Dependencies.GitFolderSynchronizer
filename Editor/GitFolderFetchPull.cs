@@ -7,14 +7,14 @@ namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer
     {
-        [MenuItem("Assets/Git Fetch and Pull", true)]
+        [MenuItem("Assets/Git/Fetch and Pull", true)]
         public static bool ValidateGitFetchPull()
         {
             string path = GetSelectedPath();
             return !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, ".git"));
         }
 
-        [MenuItem("Assets/Git Fetch and Pull", priority = -99)]
+        [MenuItem("Assets/Git/Fetch and Pull", priority = 2011)]
         public static void FetchPull()
         {
             string path = GetSelectedPath();

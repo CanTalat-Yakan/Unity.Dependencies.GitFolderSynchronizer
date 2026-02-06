@@ -2,12 +2,43 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 namespace UnityEssentials
 {
     public partial class GitFolderSynchronizer
     {
+        [MenuItem("Assets/Git/Commit and Push", true)]
+        public static bool ValidateGitFolderSynchronizer()
+        {
+            string path = GetSelectedPath();
+            return !string.IsNullOrEmpty(path)
+                   && Directory.Exists(Path.Combine(path, ".git"))
+                   && (HasUncommittedChanges(path) || HasUnpushedCommits(path));
+        }
+
+        [MenuItem("Assets/Git/Commit and Push", priority = 2010)]
+        public static void ShowWindow()
+        {
+            string path = GetSelectedPath();
+            if (!string.IsNullOrEmpty(path))
+            {
+                var editor = new GitFolderSynchronizer();
+                editor.Token = EditorPrefs.GetString(TokenKey, "");
+                editor.RefreshState(path);
+
+                editor.Window = EditorWindowBuilder
+                    .CreateInstance("Git Commit and Push Window", new(480, 340))
+                    .SetHeader(editor.Header, EditorWindowStyle.Toolbar)
+                    .SetBody(editor.Body, EditorWindowStyle.Margin)
+                    .SetFooter(editor.Footer, EditorWindowStyle.HelpBox)
+                    .GetRepaintEvent(out editor.Repaint)
+                    .GetCloseEvent(out editor.Close)
+                    .ShowAsUtility();
+            }
+        }
+
         private static bool HasUnpushedCommits(string path)
         {
             if (string.IsNullOrEmpty(path) || !Directory.Exists(Path.Combine(path, ".git")))
