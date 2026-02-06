@@ -1,7 +1,7 @@
 {
-  "name": "com.unityessentials.gitfoldersynchronizer",
-  "version": "1.0.0",
-  "displayName": "Unity Dependencies GitFolderSynchronizer",
+  "name": "com.unityessentials.core.dependencies.gitapi",
+  "version": "2.0.0",
+  "displayName": "Dependencies GitApi",
   "description": "This is a part of the UnityEssentials Ecosystem",
   "unity": "6000.0",
   "unityRelease": "",
